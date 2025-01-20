@@ -62,7 +62,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;../Libraries/glfw/include/;../Libraries/glm/;../Libraries/spdlog/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;../Libraries/glfw/include/;../Libraries/glm/;../Libraries/spdlog/include/;Src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus /utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,7 +84,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;../Libraries/glfw/include/;../Libraries/glm/;../Libraries/spdlog/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;../Libraries/glfw/include/;../Libraries/glm/;../Libraries/spdlog/include/;Src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus /utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,6 +98,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Kitsune.cpp" />
+    <ClCompile Include="Src\Core\KitApplication.cpp" />
+    <ClCompile Include="Src\Graphics\KitEngineDevice.cpp" />
+    <ClCompile Include="Src\Graphics\KitPipeline.cpp" />
+    <ClCompile Include="Src\Graphics\KitWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Core\KitApplication.h" />
+    <ClInclude Include="Src\Core\KitDefinitions.h" />
+    <ClInclude Include="Src\Core\KitLogs.h" />
+    <ClInclude Include="Src\Graphics\KitEngineDevice.h" />
+    <ClInclude Include="Src\Graphics\KitPipeline.h" />
+    <ClInclude Include="Src\Graphics\KitWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
