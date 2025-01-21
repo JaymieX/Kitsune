@@ -1,7 +1,5 @@
 ﻿#include "KitApplication.h"
 
-#include <glm/vec2.hpp>
-
 #include "KitLogs.h"
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitModel.h"
@@ -42,12 +40,17 @@ namespace Kitsune
 
     void KitApplication::CreatePipelineLayout()
     {
+        VkPushConstantRange push_constant_range;
+        push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        push_constant_range.offset     = 0;
+        push_constant_range.size       = sizeof(KitPushConstantsData);
+        
         VkPipelineLayoutCreateInfo create_info{};
         create_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         create_info.setLayoutCount         = 0;
         create_info.pSetLayouts            = nullptr;
-        create_info.pushConstantRangeCount = 0;
-        create_info.pPushConstantRanges    = nullptr;
+        create_info.pushConstantRangeCount = 1;
+        create_info.pPushConstantRanges    = &push_constant_range;
 
         VkResult result = vkCreatePipelineLayout(engine_device_->GetDevice(), &create_info, nullptr, &pipeline_layout_);
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to create pipeline layout!");
@@ -119,6 +122,9 @@ namespace Kitsune
 
     void KitApplication::RecordCommandBuffer(int image_index) const
     {
+        static int frame = 30;
+        frame = (frame + 1) % 1000;
+        
         VkCommandBufferBeginInfo command_begin_info{};
         command_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         VkResult begin_record_result = vkBeginCommandBuffer(command_buffers_[image_index], &command_begin_info);
@@ -128,7 +134,7 @@ namespace Kitsune
         // Index 0 is color
         // Index 1 is depth
         std::array<VkClearValue, 2> clear_values{};
-        clear_values[0].color = {{.1f, .1f, .1f, 1.f}};
+        clear_values[0].color = {{.01f, .01f, .01f, 1.f}};
         clear_values[1].depthStencil = { 1.f, 0 };
         
         VkRenderPassBeginInfo render_pass_begin_info{};
@@ -156,7 +162,22 @@ namespace Kitsune
 
         pipeline_->Bind(command_buffers_[image_index]);
         model_->Bind(command_buffers_[image_index]);
-        model_->Draw(command_buffers_[image_index]);
+
+        for (int i = 0; i < 4; i++)
+        {
+            KitPushConstantsData push_constants_data{};
+            push_constants_data.offset = {-.5f + frame * 0.002f, -.4f + i *.25f};
+            push_constants_data.color = {0.f, 0.f, .2f + .2f * i};
+
+            vkCmdPushConstants(
+                command_buffers_[image_index],
+                pipeline_layout_,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                0,
+                sizeof(push_constants_data),
+                &push_constants_data);
+            model_->Draw(command_buffers_[image_index]);
+        }
 
         vkCmdEndRenderPass(command_buffers_[image_index]);
 

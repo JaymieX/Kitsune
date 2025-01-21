@@ -6,11 +6,22 @@
 #include "Graphics/KitSwapChain.h"
 #include "Graphics/KitWindow.h"
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
+
 namespace Kitsune
 {
     constexpr uint32_t default_width    = 800;
     constexpr uint32_t default_height   = 600;
     constexpr const char* default_title = "Kitsune Tools";
+
+    struct KitPushConstantsData
+    {
+        alignas(8)  glm::vec2 offset;
+        alignas(16) glm::vec3 color;
+    };
     
     class KitApplication final
     {
