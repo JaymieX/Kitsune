@@ -4,15 +4,128 @@
 
 namespace Kitsune
 {
-    KitSwapChain::KitSwapChain(KitEngineDevice* device):
-        device_(device)
+    KitSwapChain::KitSwapChain(KitEngineDevice* device, VkExtent2D extent):
+        device_(device),
+        swap_chain_extent_(extent)
+    {
+        Init();
+    }
+
+    KitSwapChain::KitSwapChain(KitEngineDevice* device, VkExtent2D extent, std::shared_ptr<KitSwapChain> previous):
+        device_(device),
+        swap_chain_extent_(extent),
+        old_swap_chain_(previous)
+    {
+        Init();
+        old_swap_chain_ = nullptr;
+    }
+
+    KitSwapChain::~KitSwapChain()
+    {
+        KIT_LOG(LOG_LOW_LEVEL_GRAPHIC, Kitsune::KitLogLevel::LOG_INFO, "Destroying swap chain");
+        
+        for (auto image_view : swap_chain_image_views_)
+        {
+            vkDestroyImageView(device_->GetDevice(), image_view, nullptr);
+        }
+        swap_chain_image_views_.clear();
+
+        if (swap_chain_ != nullptr)
+        {
+            vkDestroySwapchainKHR(device_->GetDevice(), swap_chain_, nullptr);
+            swap_chain_ = nullptr;
+        }
+
+        for (int i = 0; i < depth_images_.size(); i++)
+        {
+            vkDestroyImageView(device_->GetDevice(), depth_image_views_[i], nullptr);
+            vkDestroyImage(device_->GetDevice(), depth_images_[i], nullptr);
+            vkFreeMemory(device_->GetDevice(), depth_image_memories_[i], nullptr);
+        }
+
+        for (const auto framebuffer : swap_chain_framebuffers_)
+        {
+            vkDestroyFramebuffer(device_->GetDevice(), framebuffer, nullptr);
+        }
+
+        vkDestroyRenderPass(device_->GetDevice(), render_pass_, nullptr);
+
+        // cleanup synchronization objects
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vkDestroySemaphore(device_->GetDevice(), render_finished_semaphores_[i], nullptr);
+            vkDestroySemaphore(device_->GetDevice(), image_available_semaphores_[i], nullptr);
+            vkDestroyFence(device_->GetDevice(), in_flight_fences_[i], nullptr);
+        }
+    }
+
+    VkResult KitSwapChain::AcquireNextImage(uint32_t* image_index) const
+    {
+        vkWaitForFences(
+           device_->GetDevice(),
+           1,
+           &in_flight_fences_[current_frame_],
+           VK_TRUE,
+           std::numeric_limits<uint64_t>::max());
+
+        VkResult result = vkAcquireNextImageKHR(
+            device_->GetDevice(),
+            swap_chain_,
+            std::numeric_limits<uint64_t>::max(),
+            image_available_semaphores_[current_frame_], // must be a not signaled semaphore
+            VK_NULL_HANDLE,
+            image_index);
+
+        return result;
+    }
+
+    VkResult KitSwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* image_index)
+    {
+        if (images_in_flight_[*image_index] != VK_NULL_HANDLE)
+        {
+            vkWaitForFences(device_->GetDevice(), 1, &images_in_flight_[*image_index], VK_TRUE, UINT64_MAX);
+        }
+        
+        images_in_flight_[*image_index] = in_flight_fences_[current_frame_];
+
+        VkSemaphore wait_semaphores[]      = {image_available_semaphores_[current_frame_]};
+        VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkSemaphore signal_semaphores[]    = {render_finished_semaphores_[current_frame_]};
+
+        VkSubmitInfo submit_info         = {};
+        submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.waitSemaphoreCount   = 1;
+        submit_info.pWaitSemaphores      = wait_semaphores;
+        submit_info.pWaitDstStageMask    = wait_stages;
+        submit_info.commandBufferCount   = 1;
+        submit_info.pCommandBuffers      = buffers;
+        submit_info.signalSemaphoreCount = 1;
+        submit_info.pSignalSemaphores    = signal_semaphores;
+
+        vkResetFences(device_->GetDevice(), 1, &in_flight_fences_[current_frame_]);
+        VkResult result = vkQueueSubmit(device_->GetGraphicsQueue(), 1, &submit_info, in_flight_fences_[current_frame_]);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Failed to submit draw command buffer!");
+
+        VkSwapchainKHR swap_chains[] = {swap_chain_};
+
+        VkPresentInfoKHR present_info   = {};
+        present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        present_info.waitSemaphoreCount = 1;
+        present_info.pWaitSemaphores    = signal_semaphores;
+        present_info.swapchainCount     = 1;
+        present_info.pSwapchains        = swap_chains;
+        present_info.pImageIndices      = image_index;
+
+        VkResult pq_result = vkQueuePresentKHR(device_->GetPresentQueue(), &present_info);
+
+        current_frame_ = (current_frame_ + 1) % MAX_FRAMES_IN_FLIGHT;
+
+        return pq_result;
+    }
+
+    void KitSwapChain::Init()
     {
         KIT_LOG(LOG_LOW_LEVEL_GRAPHIC, Kitsune::KitLogLevel::LOG_INFO, "Creating a new swap chain");
-        
-        int width, height;
-        device_->GetWindow()->GetFrameBufferSize(width, height);
-        swap_chain_extent_.width  = width;
-        swap_chain_extent_.height = height;
 
         // --- Create swap chain ---
         {
@@ -58,7 +171,14 @@ namespace Kitsune
             create_info.compositeAlpha            = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
             create_info.presentMode               = present_mode;
             create_info.clipped                   = VK_TRUE;
-            create_info.oldSwapchain              = VK_NULL_HANDLE;
+            if (old_swap_chain_ == nullptr)
+            {
+                create_info.oldSwapchain          = VK_NULL_HANDLE;
+            }
+            else
+            {
+                create_info.oldSwapchain          = old_swap_chain_->swap_chain_;
+            }
 
             VkResult result = vkCreateSwapchainKHR(device_->GetDevice(), &create_info, nullptr, &swap_chain_);
             KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Failed to create swap chain!");
@@ -253,109 +373,6 @@ namespace Kitsune
             }
         }
         // --- End create sync object ---
-    }
-
-    KitSwapChain::~KitSwapChain()
-    {
-        KIT_LOG(LOG_LOW_LEVEL_GRAPHIC, Kitsune::KitLogLevel::LOG_INFO, "Destroying swap chain");
-        
-        for (auto image_view : swap_chain_image_views_)
-        {
-            vkDestroyImageView(device_->GetDevice(), image_view, nullptr);
-        }
-        swap_chain_image_views_.clear();
-
-        if (swap_chain_ != nullptr)
-        {
-            vkDestroySwapchainKHR(device_->GetDevice(), swap_chain_, nullptr);
-            swap_chain_ = nullptr;
-        }
-
-        for (int i = 0; i < depth_images_.size(); i++)
-        {
-            vkDestroyImageView(device_->GetDevice(), depth_image_views_[i], nullptr);
-            vkDestroyImage(device_->GetDevice(), depth_images_[i], nullptr);
-            vkFreeMemory(device_->GetDevice(), depth_image_memories_[i], nullptr);
-        }
-
-        for (const auto framebuffer : swap_chain_framebuffers_)
-        {
-            vkDestroyFramebuffer(device_->GetDevice(), framebuffer, nullptr);
-        }
-
-        vkDestroyRenderPass(device_->GetDevice(), render_pass_, nullptr);
-
-        // cleanup synchronization objects
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            vkDestroySemaphore(device_->GetDevice(), render_finished_semaphores_[i], nullptr);
-            vkDestroySemaphore(device_->GetDevice(), image_available_semaphores_[i], nullptr);
-            vkDestroyFence(device_->GetDevice(), in_flight_fences_[i], nullptr);
-        }
-    }
-
-    VkResult KitSwapChain::AcquireNextImage(uint32_t* image_index) const
-    {
-        vkWaitForFences(
-           device_->GetDevice(),
-           1,
-           &in_flight_fences_[current_frame_],
-           VK_TRUE,
-           std::numeric_limits<uint64_t>::max());
-
-        VkResult result = vkAcquireNextImageKHR(
-            device_->GetDevice(),
-            swap_chain_,
-            std::numeric_limits<uint64_t>::max(),
-            image_available_semaphores_[current_frame_], // must be a not signaled semaphore
-            VK_NULL_HANDLE,
-            image_index);
-
-        return result;
-    }
-
-    VkResult KitSwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* image_index)
-    {
-        if (images_in_flight_[*image_index] != VK_NULL_HANDLE)
-        {
-            vkWaitForFences(device_->GetDevice(), 1, &images_in_flight_[*image_index], VK_TRUE, UINT64_MAX);
-        }
-        
-        images_in_flight_[*image_index] = in_flight_fences_[current_frame_];
-
-        VkSemaphore wait_semaphores[]      = {image_available_semaphores_[current_frame_]};
-        VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        VkSemaphore signal_semaphores[]    = {render_finished_semaphores_[current_frame_]};
-
-        VkSubmitInfo submit_info         = {};
-        submit_info.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.waitSemaphoreCount   = 1;
-        submit_info.pWaitSemaphores      = wait_semaphores;
-        submit_info.pWaitDstStageMask    = wait_stages;
-        submit_info.commandBufferCount   = 1;
-        submit_info.pCommandBuffers      = buffers;
-        submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores    = signal_semaphores;
-
-        vkResetFences(device_->GetDevice(), 1, &in_flight_fences_[current_frame_]);
-        VkResult result = vkQueueSubmit(device_->GetGraphicsQueue(), 1, &submit_info, in_flight_fences_[current_frame_]);
-        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Failed to submit draw command buffer!");
-
-        VkSwapchainKHR swap_chains[] = {swap_chain_};
-
-        VkPresentInfoKHR present_info   = {};
-        present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        present_info.waitSemaphoreCount = 1;
-        present_info.pWaitSemaphores    = signal_semaphores;
-        present_info.swapchainCount     = 1;
-        present_info.pSwapchains        = swap_chains;
-        present_info.pImageIndices      = image_index;
-
-        VkResult pq_result = vkQueuePresentKHR(device_->GetPresentQueue(), &present_info);
-
-        current_frame_ = (current_frame_ + 1) % MAX_FRAMES_IN_FLIGHT;
-
-        return pq_result;
     }
 
     VkSurfaceFormatKHR KitSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats)

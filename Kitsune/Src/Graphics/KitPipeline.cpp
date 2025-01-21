@@ -72,25 +72,18 @@ namespace Kitsune
         vertex_input_state_create_info.pVertexAttributeDescriptions    = attr_desc.data();
         vertex_input_state_create_info.pVertexBindingDescriptions      = binding_desc.data();
 
-        VkPipelineViewportStateCreateInfo viewport_config_info{};
-        viewport_config_info.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        viewport_config_info.viewportCount = 1;
-        viewport_config_info.pViewports    = &pipeline_config_info.viewport;
-        viewport_config_info.scissorCount  = 1;
-        viewport_config_info.pScissors     = &pipeline_config_info.scissor;
-
         VkGraphicsPipelineCreateInfo graphics_pipeline_create_info{};
         graphics_pipeline_create_info.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         graphics_pipeline_create_info.stageCount          = 2;
         graphics_pipeline_create_info.pStages             = shader_stages;
         graphics_pipeline_create_info.pVertexInputState   = &vertex_input_state_create_info;
         graphics_pipeline_create_info.pInputAssemblyState = &pipeline_config_info.input_assembly_info;
-        graphics_pipeline_create_info.pViewportState      = &viewport_config_info;
+        graphics_pipeline_create_info.pViewportState      = &pipeline_config_info.viewport_state_info;
         graphics_pipeline_create_info.pRasterizationState = &pipeline_config_info.rasterization_info;
         graphics_pipeline_create_info.pColorBlendState    = &pipeline_config_info.color_blend_info;
         graphics_pipeline_create_info.pMultisampleState   = &pipeline_config_info.multisample_info;
         graphics_pipeline_create_info.pDepthStencilState  = &pipeline_config_info.depth_stencil_info;
-        graphics_pipeline_create_info.pDynamicState       = nullptr;
+        graphics_pipeline_create_info.pDynamicState       = &pipeline_config_info.dynamic_state_info;
         graphics_pipeline_create_info.layout              = pipeline_config_info.pipeline_layout;
         graphics_pipeline_create_info.renderPass          = pipeline_config_info.render_pass;
         graphics_pipeline_create_info.subpass             = pipeline_config_info.subpass;
@@ -109,22 +102,17 @@ namespace Kitsune
         vkDestroyPipeline(device_->GetDevice(), graphics_pipeline_, nullptr);
     }
 
-    PipelineConfigInfo KitPipeline::DefaultPipelineConfigInfo(const uint32_t width, const uint32_t height)
+    void KitPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
     {
-        PipelineConfigInfo config_info{};
         config_info.input_assembly_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         config_info.input_assembly_info.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         config_info.input_assembly_info.primitiveRestartEnable = VK_FALSE;
         
-        config_info.viewport.x        = 0.0f;
-        config_info.viewport.y        = 0.0f;
-        config_info.viewport.width    = static_cast<float>(width);
-        config_info.viewport.height   = static_cast<float>(height);
-        config_info.viewport.minDepth = 0.0f;
-        config_info.viewport.maxDepth = 1.0f;
-        
-        config_info.scissor.offset = {0, 0};
-        config_info.scissor.extent = {width, height};
+        config_info.viewport_state_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        config_info.viewport_state_info.viewportCount          = 1;
+        config_info.viewport_state_info.pViewports             = nullptr;
+        config_info.viewport_state_info.scissorCount           = 1;
+        config_info.viewport_state_info.pScissors              = nullptr;
 
         config_info.rasterization_info.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         config_info.rasterization_info.depthClampEnable        = VK_FALSE;
@@ -179,8 +167,12 @@ namespace Kitsune
         config_info.depth_stencil_info.stencilTestEnable       = VK_FALSE;
         config_info.depth_stencil_info.front                   = {};  // Optional
         config_info.depth_stencil_info.back                    = {};  // Optional
-        
-        return config_info;
+
+        config_info.dynamic_state_enables                      = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+        config_info.dynamic_state_info.sType                   = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        config_info.dynamic_state_info.pDynamicStates          = config_info.dynamic_state_enables.data();
+        config_info.dynamic_state_info.dynamicStateCount       = static_cast<uint32_t>(config_info.dynamic_state_enables.size());
+        config_info.dynamic_state_info.flags                   = 0;
     }
 
     void KitPipeline::Bind(const VkCommandBuffer command_buffer) const

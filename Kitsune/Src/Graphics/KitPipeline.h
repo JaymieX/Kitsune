@@ -8,14 +8,19 @@ namespace Kitsune
 {
     struct PipelineConfigInfo
     {
-        VkViewport viewport;
-        VkRect2D scissor;
+        PipelineConfigInfo() = default;
+        PipelineConfigInfo(const PipelineConfigInfo&)            = delete;
+        PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+
+        VkPipelineViewportStateCreateInfo viewport_state_info;
         VkPipelineInputAssemblyStateCreateInfo input_assembly_info;
         VkPipelineRasterizationStateCreateInfo rasterization_info;
         VkPipelineMultisampleStateCreateInfo multisample_info;
         VkPipelineColorBlendAttachmentState color_blend_attachment;
         VkPipelineColorBlendStateCreateInfo color_blend_info;
         VkPipelineDepthStencilStateCreateInfo depth_stencil_info;
+        std::vector<VkDynamicState> dynamic_state_enables;
+        VkPipelineDynamicStateCreateInfo dynamic_state_info;
         VkPipelineLayout pipeline_layout = nullptr;
         VkRenderPass render_pass = nullptr;
         uint32_t subpass = 0;
@@ -40,7 +45,7 @@ namespace Kitsune
         KitPipeline& operator=(const KitPipeline&) = delete;
         KitPipeline& operator=(KitPipeline&&)      = delete;
 
-        static PipelineConfigInfo DefaultPipelineConfigInfo(uint32_t width, uint32_t height);
+        static void DefaultPipelineConfigInfo(PipelineConfigInfo& config_info);
 
         void Bind(const VkCommandBuffer command_buffer) const;
 

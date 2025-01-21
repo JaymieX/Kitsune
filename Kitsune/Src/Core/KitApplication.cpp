@@ -16,11 +16,10 @@ namespace Kitsune
 
         window_ = std::make_unique<KitWindow>(KitWindowInfo(default_width, default_height, default_title));
         engine_device_ = std::make_unique<KitEngineDevice>(window_.get());
-        swap_chain_ = std::make_unique<KitSwapChain>(engine_device_.get());
 
         LoadModel();
         CreatePipelineLayout();
-        CreatePipeline();
+        RecreateSwapChain();
         CreateCommandBuffers();
     }
 
@@ -56,12 +55,45 @@ namespace Kitsune
 
     void KitApplication::CreatePipeline()
     {
-        PipelineConfigInfo pipeline_config = KitPipeline::DefaultPipelineConfigInfo(swap_chain_->Width(), swap_chain_->Height());
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, swap_chain_ != nullptr, "Swap chain does not exist at pipeline creation!");
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_layout_ != nullptr, "Pipeline layouts do not exist at pipeline creation!");
+        
+        PipelineConfigInfo pipeline_config{};
+        KitPipeline::DefaultPipelineConfigInfo(pipeline_config);
         
         pipeline_config.render_pass     = swap_chain_->GetRenderPass();
         pipeline_config.pipeline_layout = pipeline_layout_;
 
         pipeline_ = std::make_unique<KitPipeline>(engine_device_.get(), "Shader/Simple3DVert.spv", "Shader/Simple3DFrag.spv", pipeline_config);
+    }
+
+    void KitApplication::RecreateSwapChain()
+    {
+        VkExtent2D extent = window_->GetExtent();
+
+        while (extent.width == 0 || extent.height == 0)
+        {
+            extent = window_->GetExtent();
+            glfwWaitEvents();
+        }
+        
+        engine_device_->DeviceWaitIdle();
+
+        if (swap_chain_ == nullptr)
+        {
+            swap_chain_ = std::make_unique<KitSwapChain>(engine_device_.get(), window_->GetExtent());
+        }
+        else
+        {
+            swap_chain_ = std::make_unique<KitSwapChain>(engine_device_.get(), window_->GetExtent(), std::move(swap_chain_));
+            if (swap_chain_->ImageCount() != command_buffers_.size())
+            {
+                FreeCommandBuffers();
+                CreateCommandBuffers();
+            }
+        }
+
+        CreatePipeline();
     }
 
     void KitApplication::CreateCommandBuffers()
@@ -77,41 +109,59 @@ namespace Kitsune
 
         VkResult result = vkAllocateCommandBuffers(engine_device_->GetDevice(), &allocate_info, command_buffers_.data());
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to create command buffers!");
+    }
 
-        for (int i = 0; i < command_buffers_.size(); ++i)
-        {
-            VkCommandBufferBeginInfo command_begin_info{};
-            command_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            VkResult begin_record_result = vkBeginCommandBuffer(command_buffers_[i], &command_begin_info);
-            KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, begin_record_result == VK_SUCCESS, "Fail to begin record command buffer {i}");
+    void KitApplication::FreeCommandBuffers()
+    {
+        vkFreeCommandBuffers(engine_device_->GetDevice(), engine_device_->GetCommandPool(), command_buffers_.size(), command_buffers_.data());
+        command_buffers_.clear();
+    }
 
-            // Structured layout:
-            // Index 0 is color
-            // Index 1 is depth
-            std::array<VkClearValue, 2> clear_values{};
-            clear_values[0].color = {{.1f, .1f, .1f, 1.f}};
-            clear_values[1].depthStencil = { 1.f, 0 };
-            
-            VkRenderPassBeginInfo render_pass_begin_info{};
-            render_pass_begin_info.sType              = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_begin_info.renderPass         = swap_chain_->GetRenderPass();
-            render_pass_begin_info.framebuffer        = swap_chain_->GetFrameBuffer(i);
-            render_pass_begin_info.renderArea.offset  = {0, 0};
-            render_pass_begin_info.renderArea.extent  = swap_chain_->GetSwapChainExtent();
-            render_pass_begin_info.clearValueCount    = clear_values.size();
-            render_pass_begin_info.pClearValues       = clear_values.data();
+    void KitApplication::RecordCommandBuffer(int image_index) const
+    {
+        VkCommandBufferBeginInfo command_begin_info{};
+        command_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        VkResult begin_record_result = vkBeginCommandBuffer(command_buffers_[image_index], &command_begin_info);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, begin_record_result == VK_SUCCESS, "Fail to begin record command buffer {}", image_index);
 
-            vkCmdBeginRenderPass(command_buffers_[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+        // Structured layout:
+        // Index 0 is color
+        // Index 1 is depth
+        std::array<VkClearValue, 2> clear_values{};
+        clear_values[0].color = {{.1f, .1f, .1f, 1.f}};
+        clear_values[1].depthStencil = { 1.f, 0 };
+        
+        VkRenderPassBeginInfo render_pass_begin_info{};
+        render_pass_begin_info.sType              = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_begin_info.renderPass         = swap_chain_->GetRenderPass();
+        render_pass_begin_info.framebuffer        = swap_chain_->GetFrameBuffer(image_index);
+        render_pass_begin_info.renderArea.offset  = {0, 0};
+        render_pass_begin_info.renderArea.extent  = swap_chain_->GetSwapChainExtent();
+        render_pass_begin_info.clearValueCount    = clear_values.size();
+        render_pass_begin_info.pClearValues       = clear_values.data();
 
-            pipeline_->Bind(command_buffers_[i]);
-            model_->Bind(command_buffers_[i]);
-            model_->Draw(command_buffers_[i]);
+        vkCmdBeginRenderPass(command_buffers_[image_index], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-            vkCmdEndRenderPass(command_buffers_[i]);
+        // Dynamic viewport/scissor
+        VkViewport viewport{};
+        viewport.x        = 0.0f;
+        viewport.y        = 0.0f;
+        viewport.width    = static_cast<float>(swap_chain_->GetSwapChainExtent().width);
+        viewport.height   = static_cast<float>(swap_chain_->GetSwapChainExtent().height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        VkRect2D scissor{{0, 0}, swap_chain_->GetSwapChainExtent()};
+        vkCmdSetViewport(command_buffers_[image_index], 0, 1, &viewport);
+        vkCmdSetScissor(command_buffers_[image_index], 0, 1, &scissor);
 
-            VkResult end_record_result = vkEndCommandBuffer(command_buffers_[i]);
-            KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, end_record_result == VK_SUCCESS, "Fail to end record command buffer");
-        }
+        pipeline_->Bind(command_buffers_[image_index]);
+        model_->Bind(command_buffers_[image_index]);
+        model_->Draw(command_buffers_[image_index]);
+
+        vkCmdEndRenderPass(command_buffers_[image_index]);
+
+        VkResult end_record_result = vkEndCommandBuffer(command_buffers_[image_index]);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, end_record_result == VK_SUCCESS, "Fail to end record command buffer");
     }
 
     void KitApplication::LoadModel()
@@ -130,9 +180,26 @@ namespace Kitsune
     {
         uint32_t image_index;
         VkResult result = swap_chain_->AcquireNextImage(&image_index);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            RecreateSwapChain();
+            return;
+        }
+        
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to aquire swapchain image index {}", image_index);
 
+        RecordCommandBuffer(image_index);
+
         result = swap_chain_->SubmitCommandBuffers(&command_buffers_[image_index], &image_index);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window_->HasWindowBufferResized())
+        {
+            window_->ResetWindowBufferResized();
+            RecreateSwapChain();
+            return;
+        }
+        
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to submit command buffer");
     }
 }

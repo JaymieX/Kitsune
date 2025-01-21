@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <memory>
+
 #include "KitEngineDevice.h"
 
 namespace Kitsune
@@ -11,6 +13,7 @@ namespace Kitsune
         VkFormat swap_chain_image_format_;
 
         VkSwapchainKHR swap_chain_;
+        std::shared_ptr<KitSwapChain> old_swap_chain_ = nullptr;
 
         std::vector<VkImage> swap_chain_images_;
         std::vector<VkImageView> swap_chain_image_views_;
@@ -32,7 +35,8 @@ namespace Kitsune
     public:
         static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
         
-        explicit KitSwapChain(KitEngineDevice* device);
+        explicit KitSwapChain(KitEngineDevice* device, VkExtent2D extent);
+        explicit KitSwapChain(KitEngineDevice* device, VkExtent2D extent, std::shared_ptr<KitSwapChain> previous);
         ~KitSwapChain();
 
         KitSwapChain(const KitSwapChain&) = delete;
@@ -59,6 +63,8 @@ namespace Kitsune
         VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* image_index);
 
     private:
+        void Init();
+        
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
         VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes);
         VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;

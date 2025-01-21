@@ -41,8 +41,11 @@ namespace Kitsune
     private:
         void CreatePipelineLayout();
         void CreatePipeline();
+        void RecreateSwapChain();
+        void RecordCommandBuffer(int image_index) const;
         void LoadModel();
         void CreateCommandBuffers();
+        void FreeCommandBuffers();
         void Draw();
     };
 }

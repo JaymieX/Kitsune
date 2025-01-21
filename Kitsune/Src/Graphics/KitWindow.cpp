@@ -4,6 +4,15 @@
 
 namespace Kitsune
 {
+    void KitWindow::FrameBufferSizeCallback(GLFWwindow* window, int width, int height)
+    {
+        KitWindow* kit_window = reinterpret_cast<KitWindow*>(glfwGetWindowUserPointer(window));
+        
+        kit_window->has_frame_buffer_resized_ = true;
+        kit_window->window_info_.width        = width;
+        kit_window->window_info_.height       = height;
+    }
+
     KitWindow::KitWindow(KitWindowInfo window_info):
         window_info_(std::move(window_info))
     {
@@ -11,9 +20,11 @@ namespace Kitsune
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         window_ = glfwCreateWindow(window_info_.width, window_info_.height, window_info_.title.c_str(), nullptr, nullptr);
+        glfwSetWindowUserPointer(window_, this);
+        glfwSetWindowSizeCallback(window_, FrameBufferSizeCallback);
     }
 
     KitWindow::~KitWindow()
