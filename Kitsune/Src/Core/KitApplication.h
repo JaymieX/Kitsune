@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <memory>
 
+#include "Graphics/KitModel.h"
+#include "Graphics/KitPipeline.h"
 #include "Graphics/KitSwapChain.h"
 #include "Graphics/KitWindow.h"
 
@@ -15,6 +17,12 @@ namespace Kitsune
         std::unique_ptr<KitWindow> window_;
         std::unique_ptr<KitEngineDevice> engine_device_;
         std::unique_ptr<KitSwapChain> swap_chain_;
+
+        std::unique_ptr<KitPipeline> pipeline_;
+        VkPipelineLayout pipeline_layout_;
+        std::vector<VkCommandBuffer> command_buffers_;
+
+        std::unique_ptr<KitModel> model_;
         
     public:
         KitApplication();
@@ -33,6 +41,7 @@ namespace Kitsune
     private:
         void CreatePipelineLayout();
         void CreatePipeline();
+        void LoadModel();
         void CreateCommandBuffers();
         void Draw();
     };

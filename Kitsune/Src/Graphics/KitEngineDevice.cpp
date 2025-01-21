@@ -323,7 +323,7 @@ namespace Kitsune
         const VkImageCreateInfo& image_info,
         VkMemoryPropertyFlags properties,
         VkImage& image,
-        VkDeviceMemory& image_memory)
+        VkDeviceMemory& image_memory) const
     {
         VkResult result = vkCreateImage(logical_device_, &image_info, nullptr, &image);
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to create image view!");
@@ -341,6 +341,106 @@ namespace Kitsune
 
         result = vkBindImageMemory(logical_device_, image, image_memory, 0);
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to bind image memory!");
+    }
+
+    void KitEngineDevice::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) const
+    {
+        VkBufferCreateInfo buffer_info{};
+        buffer_info.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        buffer_info.size        = size;
+        buffer_info.usage       = usage;
+        buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VkResult result = vkCreateBuffer(logical_device_, &buffer_info, nullptr, &buffer);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Failed to create vertex buffer!");
+
+        VkMemoryRequirements mem_requirements;
+        vkGetBufferMemoryRequirements(logical_device_, buffer, &mem_requirements);
+
+        VkMemoryAllocateInfo alloc_info{};
+        alloc_info.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        alloc_info.allocationSize  = mem_requirements.size;
+        alloc_info.memoryTypeIndex = FindMemoryType(mem_requirements.memoryTypeBits, properties);
+
+        result = vkAllocateMemory(logical_device_, &alloc_info, nullptr, &buffer_memory);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Failed to allocate vertex buffer memory!");
+
+        vkBindBufferMemory(logical_device_, buffer, buffer_memory, 0);
+    }
+
+    VkCommandBuffer KitEngineDevice::BeginSingleTimeCommands() const
+    {
+        VkCommandBufferAllocateInfo alloc_info{};
+        alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        alloc_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        alloc_info.commandPool        = command_pool_;
+        alloc_info.commandBufferCount = 1;
+
+        VkCommandBuffer command_buffer;
+        vkAllocateCommandBuffers(logical_device_, &alloc_info, &command_buffer);
+
+        VkCommandBufferBeginInfo begin_info{};
+        begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(command_buffer, &begin_info);
+        return command_buffer;
+    }
+
+    void KitEngineDevice::EndSingleTimeCommands(VkCommandBuffer command_buffer) const
+    {
+        vkEndCommandBuffer(command_buffer);
+
+        VkSubmitInfo submit_info{};
+        submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers    = &command_buffer;
+
+        vkQueueSubmit(graphics_queue_, 1, &submit_info, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphics_queue_);
+
+        vkFreeCommandBuffers(logical_device_, command_pool_, 1, &command_buffer);
+    }
+
+    void KitEngineDevice::CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) const
+    {
+        VkCommandBuffer command_buffer = BeginSingleTimeCommands();
+
+        VkBufferCopy copy_region{};
+        copy_region.srcOffset = 0;  // Optional
+        copy_region.dstOffset = 0;  // Optional
+        copy_region.size      = size;
+        vkCmdCopyBuffer(command_buffer, src_buffer, dst_buffer, 1, &copy_region);
+
+        EndSingleTimeCommands(command_buffer);
+    }
+
+    void KitEngineDevice::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layer_count)
+    {
+        VkCommandBuffer command_buffer = BeginSingleTimeCommands();
+
+        VkBufferImageCopy region{};
+        region.bufferOffset      = 0;
+        region.bufferRowLength   = 0;
+        region.bufferImageHeight = 0;
+
+        region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel       = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount     = layer_count;
+
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {width, height, 1};
+
+        vkCmdCopyBufferToImage(
+            command_buffer,
+            buffer,
+            image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region);
+        
+        EndSingleTimeCommands(command_buffer);
     }
 
     QueueFamilyIndices KitEngineDevice::FindQueueFamilies(VkPhysicalDevice device) const

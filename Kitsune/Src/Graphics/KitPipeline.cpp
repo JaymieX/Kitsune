@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "KitModel.h"
 #include "Core/KitLogs.h"
 
 namespace
@@ -61,15 +62,15 @@ namespace Kitsune
         shader_stages[1].pNext               = nullptr;
         shader_stages[1].pSpecializationInfo = nullptr;
         
-        //std::vector<VkVertexInputAttributeDescription> attr_desc  = APModel::APVertex::GetAttributeDescriptions();
-        //std::vector<VkVertexInputBindingDescription> binding_desc = APModel::APVertex::GetBindingDescriptions();
+        std::vector<VkVertexInputAttributeDescription> attr_desc  = KitModel::KitVertex::GetAttributeDescriptions();
+        std::vector<VkVertexInputBindingDescription> binding_desc = KitModel::KitVertex::GetBindingDescriptions();
         
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info{};
         vertex_input_state_create_info.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0; //static_cast<uint32_t>(attr_desc.size());
-        vertex_input_state_create_info.vertexBindingDescriptionCount   = 0; //static_cast<uint32_t>(binding_desc.size());
-        vertex_input_state_create_info.pVertexAttributeDescriptions    = nullptr; //attr_desc.data();
-        vertex_input_state_create_info.pVertexBindingDescriptions      = nullptr; //binding_desc.data();
+        vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attr_desc.size());
+        vertex_input_state_create_info.vertexBindingDescriptionCount   = static_cast<uint32_t>(binding_desc.size());
+        vertex_input_state_create_info.pVertexAttributeDescriptions    = attr_desc.data();
+        vertex_input_state_create_info.pVertexBindingDescriptions      = binding_desc.data();
 
         VkPipelineViewportStateCreateInfo viewport_config_info{};
         viewport_config_info.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
