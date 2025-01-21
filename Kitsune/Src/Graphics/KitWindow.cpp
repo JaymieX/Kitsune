@@ -1,10 +1,13 @@
 ﻿#include "KitWindow.h"
 
+#include "Core/KitLogs.h"
+
 namespace Kitsune
 {
     KitWindow::KitWindow(KitWindowInfo window_info):
         window_info_(std::move(window_info))
     {
+        KIT_LOG(LOG_ENGINE, Kitsune::KitLogLevel::LOG_INFO, "Creating window with title: {}", window_info_.title);
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -15,6 +18,7 @@ namespace Kitsune
 
     KitWindow::~KitWindow()
     {
+        KIT_LOG(LOG_ENGINE, Kitsune::KitLogLevel::LOG_INFO, "Destroying window with title: {}", window_info_.title);
         glfwDestroyWindow(window_);
         glfwTerminate();
     }

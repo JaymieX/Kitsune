@@ -101,6 +101,7 @@
     <ClCompile Include="Src\Core\KitApplication.cpp" />
     <ClCompile Include="Src\Graphics\KitEngineDevice.cpp" />
     <ClCompile Include="Src\Graphics\KitPipeline.cpp" />
+    <ClCompile Include="Src\Graphics\KitSwapChain.cpp" />
     <ClCompile Include="Src\Graphics\KitWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +110,7 @@
     <ClInclude Include="Src\Core\KitLogs.h" />
     <ClInclude Include="Src\Graphics\KitEngineDevice.h" />
     <ClInclude Include="Src\Graphics\KitPipeline.h" />
+    <ClInclude Include="Src\Graphics\KitSwapChain.h" />
     <ClInclude Include="Src\Graphics\KitWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

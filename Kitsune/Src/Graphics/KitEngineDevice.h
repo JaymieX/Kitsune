@@ -68,18 +68,31 @@ namespace Kitsune
         KitEngineDevice& operator=(KitEngineDevice&&)      = delete;
 
         void DeviceWaitIdle() const;
-        
+
+        KIT_NODISCARD VkDevice GetDevice() const           { return logical_device_; }
+        KIT_NODISCARD VkQueue GetGraphicsQueue() const     { return graphics_queue_; }
+        KIT_NODISCARD VkQueue GetPresentQueue() const      { return present_queue_; }
+        KIT_NODISCARD VkSurfaceKHR GetSurface() const      { return surface_; }
+        KIT_NODISCARD VkCommandPool GetCommandPool() const { return command_pool_; }
+        KIT_NODISCARD KitWindow* GetWindow() const         { return window_; }
         KIT_NODISCARD std::vector<const char*> GetRequiredExtensions() const;
 
         KIT_NODISCARD bool IsValidationLayerSupported() const;
         KIT_NODISCARD bool IsDeviceSuitable(VkPhysicalDevice device) const;
 
+        SwapChainSupportDetails QuerySwapChainSupport() const;
+        QueueFamilyIndices FindQueueFamilies() const;
+
+        VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
+        void CreateImageWithInfo(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& image_memory);
+
     private:
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
-        
+
         QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) const;
         bool CheckDeviceExtensionSupport(VkPhysicalDevice device) const;
         SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device) const;
-        SwapChainSupportDetails QuerySwapChainSupport() const;
+
+        uint32_t FindMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     };
 }

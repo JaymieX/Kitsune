@@ -27,10 +27,10 @@ namespace Kitsune
     
     class KitLog
     {
-        static std::vector<spdlog::sink_ptr> logger_sinks_;
+        inline static std::vector<spdlog::sink_ptr> logger_sinks_;
 
-        static std::shared_ptr<spdlog::logger> low_level_graphic_logger_;
-        static std::shared_ptr<spdlog::logger> engine_logger_;
+        inline static std::shared_ptr<spdlog::logger> low_level_graphic_logger_;
+        inline static std::shared_ptr<spdlog::logger> engine_logger_;
         
     public:
         static void InitLoggers();
@@ -108,11 +108,6 @@ namespace Kitsune
 #define KIT_ASSERT(category, condition, ...) \
 Kitsune::KitLog::Assert(category, condition, __VA_ARGS__); \
 assert(condition) \
-
-    std::vector<spdlog::sink_ptr> KitLog::logger_sinks_;
-
-    std::shared_ptr<spdlog::logger> KitLog::low_level_graphic_logger_;
-    std::shared_ptr<spdlog::logger> KitLog::engine_logger_;
 
     inline void KitLog::InitLoggers()
     {

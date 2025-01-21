@@ -70,7 +70,7 @@ namespace Kitsune
     KitEngineDevice::KitEngineDevice(KitWindow* window):
         window_(window)
     {
-        KitLog::InitLoggers();
+        KIT_LOG(LOG_LOW_LEVEL_GRAPHIC, Kitsune::KitLogLevel::LOG_INFO, "Creating engine device");
         
         if (enable_validation_layers_)
         {
@@ -224,6 +224,7 @@ namespace Kitsune
 
     KitEngineDevice::~KitEngineDevice()
     {
+        KIT_LOG(LOG_LOW_LEVEL_GRAPHIC, Kitsune::KitLogLevel::LOG_INFO, "Destroying engine device");
         vkDestroyCommandPool(logical_device_, command_pool_, nullptr);
         
         if (enable_validation_layers_)
@@ -318,6 +319,30 @@ namespace Kitsune
         create_info.pUserData       = nullptr;
     }
 
+    void KitEngineDevice::CreateImageWithInfo(
+        const VkImageCreateInfo& image_info,
+        VkMemoryPropertyFlags properties,
+        VkImage& image,
+        VkDeviceMemory& image_memory)
+    {
+        VkResult result = vkCreateImage(logical_device_, &image_info, nullptr, &image);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to create image view!");
+
+        VkMemoryRequirements mem_requirements;
+        vkGetImageMemoryRequirements(logical_device_, image, &mem_requirements);
+
+        VkMemoryAllocateInfo alloc_info{};
+        alloc_info.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        alloc_info.allocationSize  = mem_requirements.size;
+        alloc_info.memoryTypeIndex = FindMemoryType(mem_requirements.memoryTypeBits, properties);
+
+        result = vkAllocateMemory(logical_device_, &alloc_info, nullptr, &image_memory);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to allocate image memory!");
+
+        result = vkBindImageMemory(logical_device_, image, image_memory, 0);
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to bind image memory!");
+    }
+
     QueueFamilyIndices KitEngineDevice::FindQueueFamilies(VkPhysicalDevice device) const
     {
         QueueFamilyIndices indices;
@@ -354,6 +379,32 @@ namespace Kitsune
         }
 
         return indices;
+    }
+
+    QueueFamilyIndices KitEngineDevice::FindQueueFamilies() const
+    {
+        return FindQueueFamilies(physical_device_);
+    }
+
+    VkFormat KitEngineDevice::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const
+    {
+        for (VkFormat format : candidates)
+        {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(physical_device_, format, &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+            {
+                return format;
+            }
+            else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+            {
+                return format;
+            }
+        }
+        
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, false, "Fail to locate appropriate format!");
+        return VK_FORMAT_MAX_ENUM;
     }
 
     bool KitEngineDevice::CheckDeviceExtensionSupport(VkPhysicalDevice device) const
@@ -404,5 +455,21 @@ namespace Kitsune
     SwapChainSupportDetails KitEngineDevice::QuerySwapChainSupport() const
     {
         return QuerySwapChainSupport(physical_device_);
+    }
+
+    uint32_t KitEngineDevice::FindMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const
+    {
+        VkPhysicalDeviceMemoryProperties mem_properties;
+        vkGetPhysicalDeviceMemoryProperties(physical_device_, &mem_properties);
+        for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++)
+        {
+            if ((type_filter & (1 << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+        
+        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, false, "Fail to locate appropriate memory type!");
+        return 0;
     }
 }

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
+#include "Graphics/KitSwapChain.h"
 #include "Graphics/KitWindow.h"
 
 namespace Kitsune
@@ -13,6 +14,7 @@ namespace Kitsune
     {
         std::unique_ptr<KitWindow> window_;
         std::unique_ptr<KitEngineDevice> engine_device_;
+        std::unique_ptr<KitSwapChain> swap_chain_;
         
     public:
         KitApplication();
