@@ -7,8 +7,7 @@ namespace Kitsune
 {
     struct KitPushConstantsData
     {
-        glm::mat2   transform{1.f}; // Default id matrix init
-        alignas(8)  glm::vec2 offset;
+        glm::mat4   transform{1.f}; // Default id matrix init
         alignas(16) glm::vec3 color;
     };
     
@@ -23,7 +22,7 @@ namespace Kitsune
         BasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass);
         ~BasicRenderSystem();
 
-        void RenderGameObjects(VkCommandBuffer command_buffer, const std::vector<KitGameObject>& game_objects) const;
+        void RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const;
 
     private:
         void CreatePipelineLayout();

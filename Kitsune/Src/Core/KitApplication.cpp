@@ -46,23 +46,72 @@ namespace Kitsune
         engine_device_->DeviceWaitIdle();
     }
 
+    std::unique_ptr<KitModel> createCubeModel(KitEngineDevice* device, glm::vec3 offset) {
+      std::vector<KitModel::KitVertex> vertices{
+     
+          // left face (white)
+          {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+          {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+          {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+          {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+          {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+          {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+     
+          // right face (yellow)
+          {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+          {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+          {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+          {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+          {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+          {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+     
+          // top face (orange, remember y axis points down)
+          {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+          {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+          {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+          {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+          {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+          {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+     
+          // bottom face (red)
+          {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+          {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+          {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+          {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+          {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+          {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+     
+          // nose face (blue)
+          {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+          {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+          {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+          {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+          {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+          {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+     
+          // tail face (green)
+          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+          {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+          {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+          {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+     
+      };
+      for (auto& v : vertices) {
+        v.position += offset;
+      }
+      return std::make_unique<KitModel>(device, vertices);
+    }
+
     void KitApplication::LoadGameObjects()
     {
-        std::vector<KitModel::KitVertex> vertices
-        {
-            {{.0f, -.5f}, {1.f, 0.f, 0.f}},
-            {{.5f, .5f}, {0.f, 1.f, 0.f}},
-            {{-.5f, .5f}, {0.f, 0.f, 1.f}}
-        };
-
-        const std::shared_ptr<KitModel> model = std::make_shared<KitModel>(engine_device_.get(), vertices);
-
-        auto triangle = KitGameObject::CreateGameObject();
-        triangle.model = model;
-        triangle.color = {.1f, .8f, .1f};
-        triangle.transform2d.translation.x = .2f;
-        triangle.transform2d.scale = {2.f, .5f};
-
-        game_objects_.push_back(triangle);
+        std::shared_ptr<KitModel> cube_model = createCubeModel(engine_device_.get(), glm::vec3(0.0f));
+        auto cube_go = KitGameObject::CreateGameObject();
+        cube_go.model = cube_model;
+        cube_go.transform.translation = {.0f, .0f, .5f};
+        cube_go.transform.scale       = {.5f, .5f, .5f};
+        
+        game_objects_.push_back(cube_go);
     }
 }

@@ -14,13 +14,14 @@ namespace Kitsune
         return binding_descriptions;
     }
 
+    // Update whenever vertex struct was changed
     std::vector<VkVertexInputAttributeDescription> KitModel::KitVertex::GetAttributeDescriptions()
     {
         std::vector<VkVertexInputAttributeDescription> attribute_descriptions(2);
         // Position
         attribute_descriptions[0].binding  = 0;
         attribute_descriptions[0].location = 0;
-        attribute_descriptions[0].format   = VK_FORMAT_R32G32_SFLOAT; // vec2
+        attribute_descriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT; // vec3
         attribute_descriptions[0].offset   = offsetof(KitVertex, position);
 
         // Color

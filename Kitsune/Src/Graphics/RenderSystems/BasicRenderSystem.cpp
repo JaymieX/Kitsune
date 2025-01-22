@@ -1,6 +1,11 @@
 ﻿#include "BasicRenderSystem.h"
 
+#include <ranges>
+
 #include "Core/KitLogs.h"
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 namespace Kitsune
 {
@@ -16,16 +21,18 @@ namespace Kitsune
         vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
     }
 
-    void BasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, const std::vector<KitGameObject>& game_objects) const
+    void BasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const
     {
         pipeline_->Bind(command_buffer);
 
         for (auto& game_obj : game_objects)
         {
+            game_obj.transform.rotation.y = glm::mod(game_obj.transform.rotation.y + .001f, glm::two_pi<float>());
+            game_obj.transform.rotation.z = glm::mod(game_obj.transform.rotation.z + .001f, glm::two_pi<float>());
+            
             KitPushConstantsData push_constants_data{};
-            push_constants_data.offset    = game_obj.transform2d.translation;
             push_constants_data.color     = game_obj.color;
-            push_constants_data.transform = game_obj.transform2d.ToMatrix();
+            push_constants_data.transform = game_obj.transform.ToMatrix();
 
             vkCmdPushConstants(
                 command_buffer,

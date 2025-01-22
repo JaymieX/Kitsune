@@ -4,24 +4,32 @@
 #include "Graphics/KitModel.h"
 
 #include <memory>
+#include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/vec2.hpp>
 
 namespace Kitsune
 {
-    struct KitTransform2d
+    struct KitTransform
     {
-        glm::vec2 translation;
-        glm::vec2 scale{1.f, 1.f};
-        float rotation = 0.f;
+        glm::vec3 translation;
+        glm::vec3 scale{1.f, 1.f, 1.f};
+        glm::vec3 rotation;
 
-        glm::mat2 ToMatrix() const
+        glm::mat4 ToMatrix() const
         {
-            const float sin = glm::sin(rotation);
-            const float cos = glm::cos(rotation);
-            glm::mat2 rot_matrix{{cos, sin}, {-sin, cos}};
+            auto transform = glm::translate(glm::mat4(1.0f), translation);
+
+            transform = glm::rotate(transform, rotation.y,{0.f, 1.f, 0.f} );
+            transform = glm::rotate(transform, rotation.x,{1.f, 0.f, 0.f} );
+            transform = glm::rotate(transform, rotation.z,{0.f, 0.f, 1.f} );
             
-            glm::mat2 scale_mat{{scale.x, .0f}, {.0f, scale.y}};
-            
-            return rot_matrix * scale_mat;
+            transform = glm::scale(transform, scale);
+
+            return transform;
         }
     };
     
@@ -39,7 +47,7 @@ namespace Kitsune
         std::shared_ptr<KitModel> model;
         glm::vec3 color;
 
-        KitTransform2d transform2d;
+        KitTransform transform;
         
         static KitGameObject CreateGameObject()
         {
