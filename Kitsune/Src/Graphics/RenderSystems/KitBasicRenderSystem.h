@@ -11,7 +11,7 @@ namespace Kitsune
         alignas(16) glm::vec3 color;
     };
     
-    class BasicRenderSystem
+    class KitBasicRenderSystem
     {
         KitEngineDevice* engine_device_;
 
@@ -19,8 +19,8 @@ namespace Kitsune
         VkPipelineLayout pipeline_layout_;
         
     public:
-        BasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass);
-        ~BasicRenderSystem();
+        KitBasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass);
+        ~KitBasicRenderSystem();
 
         void RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const;
 

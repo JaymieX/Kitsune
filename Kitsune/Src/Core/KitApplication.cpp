@@ -4,7 +4,7 @@
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitModel.h"
 #include "Graphics/KitPipeline.h"
-#include "Graphics/RenderSystems/BasicRenderSystem.h"
+#include "Graphics/RenderSystems/KitBasicRenderSystem.h"
 
 namespace Kitsune
 {
@@ -27,7 +27,7 @@ namespace Kitsune
 
     void KitApplication::Run()
     {
-        BasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass());
+        KitBasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass());
         
         while (!window_->ShouldClose())
         {

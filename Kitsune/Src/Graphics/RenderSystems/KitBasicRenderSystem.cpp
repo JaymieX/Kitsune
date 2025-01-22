@@ -1,4 +1,4 @@
-﻿#include "BasicRenderSystem.h"
+﻿#include "KitBasicRenderSystem.h"
 
 #include <ranges>
 
@@ -9,19 +9,19 @@
 
 namespace Kitsune
 {
-    BasicRenderSystem::BasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass):
+    KitBasicRenderSystem::KitBasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass):
         engine_device_(device)
     {
         CreatePipelineLayout();
         CreatePipeline(render_pass);
     }
 
-    BasicRenderSystem::~BasicRenderSystem()
+    KitBasicRenderSystem::~KitBasicRenderSystem()
     {
         vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
     }
 
-    void BasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const
+    void KitBasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const
     {
         pipeline_->Bind(command_buffer);
 
@@ -47,7 +47,7 @@ namespace Kitsune
         }
     }
 
-    void BasicRenderSystem::CreatePipelineLayout()
+    void KitBasicRenderSystem::CreatePipelineLayout()
     {
         VkPushConstantRange push_constant_range;
         push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -65,7 +65,7 @@ namespace Kitsune
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, result == VK_SUCCESS, "Fail to create pipeline layout!");
     }
 
-    void BasicRenderSystem::CreatePipeline(VkRenderPass render_pass)
+    void KitBasicRenderSystem::CreatePipeline(VkRenderPass render_pass)
     {
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_layout_ != nullptr, "Pipeline layouts do not exist at pipeline creation!");
         
