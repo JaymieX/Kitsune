@@ -33,6 +33,7 @@ namespace Kitsune
 
         KIT_NODISCARD bool IsFrameInProgress() const { return has_frame_started_; }
         KIT_NODISCARD VkRenderPass GetRenderPass() const { return swap_chain_->GetRenderPass(); }
+        KIT_NODISCARD float GetAspectRatio() const { return swap_chain_->ExtentAspectRatio(); }
 
         KIT_NODISCARD int GetCurrentFrameIndex() const
         {

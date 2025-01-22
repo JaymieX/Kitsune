@@ -21,7 +21,7 @@ namespace Kitsune
         vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
     }
 
-    void KitBasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const
+    void KitBasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects, const KitCamera& camera) const
     {
         pipeline_->Bind(command_buffer);
 
@@ -32,7 +32,7 @@ namespace Kitsune
             
             KitPushConstantsData push_constants_data{};
             push_constants_data.color     = game_obj.color;
-            push_constants_data.transform = game_obj.transform.ToMatrix();
+            push_constants_data.transform = camera.GetProjectionMatrix() * game_obj.transform.ToMatrix();
 
             vkCmdPushConstants(
                 command_buffer,

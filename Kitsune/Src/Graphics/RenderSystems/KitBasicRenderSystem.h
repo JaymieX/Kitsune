@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Core/Scene/KitGameObject.h"
+#include "Graphics/KitCamera.h"
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitPipeline.h"
 
@@ -22,7 +23,7 @@ namespace Kitsune
         KitBasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass);
         ~KitBasicRenderSystem();
 
-        void RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects) const;
+        void RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects, const KitCamera& camera) const;
 
     private:
         void CreatePipelineLayout();
