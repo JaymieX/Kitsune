@@ -11,6 +11,7 @@ namespace Kitsune
 
         VkExtent2D swap_chain_extent_;
         VkFormat swap_chain_image_format_;
+        VkFormat swap_chain_depth_format_;
 
         VkSwapchainKHR swap_chain_;
         std::shared_ptr<KitSwapChain> old_swap_chain_ = nullptr;
@@ -44,6 +45,11 @@ namespace Kitsune
         
         KitSwapChain& operator=(const KitSwapChain&) = delete;
         KitSwapChain& operator=(KitSwapChain&&)      = delete;
+
+        KIT_NODISCARD bool CompareSwapFormats(const KitSwapChain& other) const
+        {
+            return swap_chain_image_format_ == other.swap_chain_image_format_ && swap_chain_depth_format_ == other.swap_chain_depth_format_;
+        }
 
         KIT_NODISCARD VkFramebuffer GetFrameBuffer(int index) const { return swap_chain_framebuffers_[index]; }
         KIT_NODISCARD VkRenderPass GetRenderPass() const            { return render_pass_; }

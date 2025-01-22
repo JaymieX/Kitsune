@@ -103,8 +103,10 @@
     <ClCompile Include="Src\Graphics\KitEngineDevice.cpp" />
     <ClCompile Include="Src\Graphics\KitModel.cpp" />
     <ClCompile Include="Src\Graphics\KitPipeline.cpp" />
+    <ClCompile Include="Src\Graphics\KitRenderer.cpp" />
     <ClCompile Include="Src\Graphics\KitSwapChain.cpp" />
     <ClCompile Include="Src\Graphics\KitWindow.cpp" />
+    <ClCompile Include="Src\Graphics\RenderSystems\BasicRenderSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Core\KitApplication.h" />
@@ -114,8 +116,10 @@
     <ClInclude Include="Src\Graphics\KitEngineDevice.h" />
     <ClInclude Include="Src\Graphics\KitModel.h" />
     <ClInclude Include="Src\Graphics\KitPipeline.h" />
+    <ClInclude Include="Src\Graphics\KitRenderer.h" />
     <ClInclude Include="Src\Graphics\KitSwapChain.h" />
     <ClInclude Include="Src\Graphics\KitWindow.h" />
+    <ClInclude Include="Src\Graphics\RenderSystems\BasicRenderSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ShaderCompile.bat" />

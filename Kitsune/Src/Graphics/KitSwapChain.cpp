@@ -280,6 +280,7 @@ namespace Kitsune
         // --- Create depth resource ---
         {
             VkFormat depth_format        = FindDepthFormat();
+            swap_chain_image_format_     = depth_format;
             VkExtent2D swap_chain_extent = swap_chain_extent_;
 
             depth_images_        .resize(swap_chain_images_.size());
