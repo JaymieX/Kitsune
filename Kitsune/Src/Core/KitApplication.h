@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include <memory>
 
-#include "Graphics/KitModel.h"
 #include "Graphics/KitPipeline.h"
 #include "Graphics/KitSwapChain.h"
 #include "Graphics/KitWindow.h"
+#include "Core/Scene/KitGameObject.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -19,6 +19,7 @@ namespace Kitsune
 
     struct KitPushConstantsData
     {
+        glm::mat2   transform{1.f}; // Default id matrix init
         alignas(8)  glm::vec2 offset;
         alignas(16) glm::vec3 color;
     };
@@ -33,7 +34,7 @@ namespace Kitsune
         VkPipelineLayout pipeline_layout_;
         std::vector<VkCommandBuffer> command_buffers_;
 
-        std::unique_ptr<KitModel> model_;
+        std::vector<KitGameObject> game_objects_;
         
     public:
         KitApplication();
@@ -54,9 +55,10 @@ namespace Kitsune
         void CreatePipeline();
         void RecreateSwapChain();
         void RecordCommandBuffer(int image_index) const;
-        void LoadModel();
+        void LoadGameObjects();
         void CreateCommandBuffers();
         void FreeCommandBuffers();
+        void RenderGameObjects(VkCommandBuffer command_buffer) const;
         void Draw();
     };
 }

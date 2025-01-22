@@ -99,6 +99,7 @@
   <ItemGroup>
     <ClCompile Include="Kitsune.cpp" />
     <ClCompile Include="Src\Core\KitApplication.cpp" />
+    <ClCompile Include="Src\Core\Scene\KitGameObject.cpp" />
     <ClCompile Include="Src\Graphics\KitEngineDevice.cpp" />
     <ClCompile Include="Src\Graphics\KitModel.cpp" />
     <ClCompile Include="Src\Graphics\KitPipeline.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="Src\Core\KitApplication.h" />
     <ClInclude Include="Src\Core\KitDefinitions.h" />
     <ClInclude Include="Src\Core\KitLogs.h" />
+    <ClInclude Include="Src\Core\Scene\KitGameObject.h" />
     <ClInclude Include="Src\Graphics\KitEngineDevice.h" />
     <ClInclude Include="Src\Graphics\KitModel.h" />
     <ClInclude Include="Src\Graphics\KitPipeline.h" />

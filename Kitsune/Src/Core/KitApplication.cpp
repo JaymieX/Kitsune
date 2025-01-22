@@ -15,7 +15,7 @@ namespace Kitsune
         window_ = std::make_unique<KitWindow>(KitWindowInfo(default_width, default_height, default_title));
         engine_device_ = std::make_unique<KitEngineDevice>(window_.get());
 
-        LoadModel();
+        LoadGameObjects();
         CreatePipelineLayout();
         RecreateSwapChain();
         CreateCommandBuffers();
@@ -120,11 +120,32 @@ namespace Kitsune
         command_buffers_.clear();
     }
 
+    void KitApplication::RenderGameObjects(VkCommandBuffer command_buffer) const
+    {
+        pipeline_->Bind(command_buffer);
+
+        for (auto& game_obj : game_objects_)
+        {
+            KitPushConstantsData push_constants_data{};
+            push_constants_data.offset    = game_obj.transform2d.translation;
+            push_constants_data.color     = game_obj.color;
+            push_constants_data.transform = game_obj.transform2d.ToMatrix();
+
+            vkCmdPushConstants(
+                command_buffer,
+                pipeline_layout_,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                0,
+                sizeof(push_constants_data),
+                &push_constants_data);
+
+            game_obj.model->Bind(command_buffer);
+            game_obj.model->Draw(command_buffer);
+        }
+    }
+
     void KitApplication::RecordCommandBuffer(int image_index) const
     {
-        static int frame = 30;
-        frame = (frame + 1) % 1000;
-        
         VkCommandBufferBeginInfo command_begin_info{};
         command_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         VkResult begin_record_result = vkBeginCommandBuffer(command_buffers_[image_index], &command_begin_info);
@@ -160,24 +181,7 @@ namespace Kitsune
         vkCmdSetViewport(command_buffers_[image_index], 0, 1, &viewport);
         vkCmdSetScissor(command_buffers_[image_index], 0, 1, &scissor);
 
-        pipeline_->Bind(command_buffers_[image_index]);
-        model_->Bind(command_buffers_[image_index]);
-
-        for (int i = 0; i < 4; i++)
-        {
-            KitPushConstantsData push_constants_data{};
-            push_constants_data.offset = {-.5f + frame * 0.002f, -.4f + i *.25f};
-            push_constants_data.color = {0.f, 0.f, .2f + .2f * i};
-
-            vkCmdPushConstants(
-                command_buffers_[image_index],
-                pipeline_layout_,
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                0,
-                sizeof(push_constants_data),
-                &push_constants_data);
-            model_->Draw(command_buffers_[image_index]);
-        }
+        RenderGameObjects(command_buffers_[image_index]);
 
         vkCmdEndRenderPass(command_buffers_[image_index]);
 
@@ -185,7 +189,7 @@ namespace Kitsune
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, end_record_result == VK_SUCCESS, "Fail to end record command buffer");
     }
 
-    void KitApplication::LoadModel()
+    void KitApplication::LoadGameObjects()
     {
         std::vector<KitModel::KitVertex> vertices
         {
@@ -194,7 +198,15 @@ namespace Kitsune
             {{-.5f, .5f}, {0.f, 0.f, 1.f}}
         };
 
-        model_ = std::make_unique<KitModel>(engine_device_.get(), vertices);
+        const std::shared_ptr<KitModel> model = std::make_shared<KitModel>(engine_device_.get(), vertices);
+
+        auto triangle = KitGameObject::CreateGameObject();
+        triangle.model = model;
+        triangle.color = {.1f, .8f, .1f};
+        triangle.transform2d.translation.x = .2f;
+        triangle.transform2d.scale = {2.f, .5f};
+
+        game_objects_.push_back(triangle);
     }
 
     void KitApplication::Draw()
