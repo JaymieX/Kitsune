@@ -13,9 +13,15 @@ namespace Kitsune
     {
         KitEngineDevice* device_;
 
+        bool is_index_available = false;
+
         VkBuffer vertex_buffer_;
         VkDeviceMemory vertex_buffer_memory_;
         uint32_t vertex_count_;
+
+        VkBuffer index_buffer_;
+        VkDeviceMemory index_buffer_memory_;
+        uint32_t index_count_;
         
     public:
         struct KitVertex
@@ -27,7 +33,13 @@ namespace Kitsune
             static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
         };
 
-        KitModel(KitEngineDevice* device, const std::vector<KitVertex>& vertices);
+        struct KitModelData
+        {
+            std::vector<KitVertex> vertices;
+            std::vector<uint32_t>  indices;
+        };
+
+        KitModel(KitEngineDevice* device, const KitModelData& data);
         ~KitModel();
 
         void Bind(VkCommandBuffer command_buffer) const;
@@ -35,5 +47,6 @@ namespace Kitsune
 
     private:
         void CreateVertexBuffers(const std::vector<KitVertex>& vertices);
+        void CreateIndexBuffers(const std::vector<uint32_t>& indices);
     };
 }
