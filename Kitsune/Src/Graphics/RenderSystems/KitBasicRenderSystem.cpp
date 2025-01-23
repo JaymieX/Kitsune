@@ -29,9 +29,6 @@ namespace Kitsune
 
         for (auto& game_obj : game_objects)
         {
-            game_obj.transform.rotation.y = glm::mod(game_obj.transform.rotation.y + .001f, glm::two_pi<float>());
-            game_obj.transform.rotation.z = glm::mod(game_obj.transform.rotation.z + .001f, glm::two_pi<float>());
-            
             KitPushConstantsData push_constants_data{};
             push_constants_data.color     = game_obj.color;
             push_constants_data.transform = projection_view * game_obj.transform.ToMatrix();

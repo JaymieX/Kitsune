@@ -21,6 +21,7 @@ namespace Kitsune
     class KitWindow
     {
         friend class KitEngineDevice;
+        friend class KitApplication;
         
         KitWindowInfo window_info_;
         bool has_frame_buffer_resized_ = false;

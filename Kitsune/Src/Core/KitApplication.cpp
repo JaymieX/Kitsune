@@ -10,6 +10,10 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
+#include <chrono>
+
+#include "KitInputController.h"
+
 namespace Kitsune
 {
     KitApplication::KitApplication()
@@ -35,10 +39,23 @@ namespace Kitsune
         KitCamera camera;
         //camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
         camera.SetViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
+
+        auto viewer_object = KitGameObject::CreateGameObject();
+        KitInputController input_controller;
+
+        auto start = std::chrono::high_resolution_clock::now();
         
         while (!window_->ShouldClose())
         {
             glfwPollEvents();
+
+            auto now = std::chrono::high_resolution_clock::now();
+            float frame_time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+            start = now;
+
+            input_controller.MoveXZ(window_->window_, frame_time, viewer_object);
+            camera.SetViewYXZ(viewer_object.transform.translation, viewer_object.transform.rotation);
+            
             float aspect = renderer_->GetAspectRatio();
             //camera.SetOrthographicProjectionMatrix(-aspect, aspect, -1, 1, -1, 1);
             camera.SetPerspectiveProjectionMatrix(glm::radians(50.f), aspect, 0.1f, 10.f);
