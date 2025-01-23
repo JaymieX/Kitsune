@@ -33,13 +33,15 @@ namespace Kitsune
     {
         KitBasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass());
         KitCamera camera;
+        //camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
+        camera.SetViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
         
         while (!window_->ShouldClose())
         {
             glfwPollEvents();
             float aspect = renderer_->GetAspectRatio();
             //camera.SetOrthographicProjectionMatrix(-aspect, aspect, -1, 1, -1, 1);
-            camera.SetPerspectiveProjectionMatrix(glm::radians(45.f), aspect, 0.1f, 50.f);
+            camera.SetPerspectiveProjectionMatrix(glm::radians(50.f), aspect, 0.1f, 10.f);
             
             if (VkCommandBuffer command_buffer = renderer_->BeginFrame())
             {
@@ -117,7 +119,7 @@ namespace Kitsune
         std::shared_ptr<KitModel> cube_model = createCubeModel(engine_device_.get(), glm::vec3(0.0f));
         auto cube_go = KitGameObject::CreateGameObject();
         cube_go.model = cube_model;
-        cube_go.transform.translation = {.0f, .0f, -2.5f};
+        cube_go.transform.translation = {.0f, .0f, 2.5f};
         cube_go.transform.scale       = {.5f, .5f, .5f};
         
         game_objects_.push_back(cube_go);

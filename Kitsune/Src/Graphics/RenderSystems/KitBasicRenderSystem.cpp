@@ -25,6 +25,8 @@ namespace Kitsune
     {
         pipeline_->Bind(command_buffer);
 
+        auto projection_view = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+
         for (auto& game_obj : game_objects)
         {
             game_obj.transform.rotation.y = glm::mod(game_obj.transform.rotation.y + .001f, glm::two_pi<float>());
@@ -32,7 +34,7 @@ namespace Kitsune
             
             KitPushConstantsData push_constants_data{};
             push_constants_data.color     = game_obj.color;
-            push_constants_data.transform = camera.GetProjectionMatrix() * game_obj.transform.ToMatrix();
+            push_constants_data.transform = projection_view * game_obj.transform.ToMatrix();
 
             vkCmdPushConstants(
                 command_buffer,
