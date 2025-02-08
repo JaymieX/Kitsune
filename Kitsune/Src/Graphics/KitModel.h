@@ -9,7 +9,22 @@
 
 namespace Kitsune
 {
-    class KitModel
+    struct KitVertex
+    {
+        glm::vec3 position;
+        glm::vec3 color;
+
+        static std::vector<VkVertexInputBindingDescription>   GetBindingDescriptions();
+        static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
+    };
+
+    struct KitMeshData
+    {
+        std::vector<KitVertex> vertices;
+        std::vector<uint32_t>  indices;
+    };
+
+    class KitMesh
     {
         KitEngineDevice* device_;
 
@@ -22,25 +37,15 @@ namespace Kitsune
         VkBuffer index_buffer_;
         VkDeviceMemory index_buffer_memory_;
         uint32_t index_count_;
+
+        bool is_moved_ = false;
         
     public:
-        struct KitVertex
-        {
-            glm::vec3 position;
-            glm::vec3 color;
+        KitMesh(KitEngineDevice* device, const KitMeshData& data);
+        ~KitMesh();
 
-            static std::vector<VkVertexInputBindingDescription>   GetBindingDescriptions();
-            static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
-        };
-
-        struct KitModelData
-        {
-            std::vector<KitVertex> vertices;
-            std::vector<uint32_t>  indices;
-        };
-
-        KitModel(KitEngineDevice* device, const KitModelData& data);
-        ~KitModel();
+        KitMesh(KitMesh&& other);
+        KitMesh& operator=(KitMesh&& other);
 
         void Bind(VkCommandBuffer command_buffer) const;
         void Draw(VkCommandBuffer command_buffer) const;
@@ -48,5 +53,20 @@ namespace Kitsune
     private:
         void CreateVertexBuffers(const std::vector<KitVertex>& vertices);
         void CreateIndexBuffers(const std::vector<uint32_t>& indices);
+    };
+
+    class KitModel
+    {
+        std::vector<KitMesh> meshes_;
+
+    public:
+        KitModel() = default;
+        explicit KitModel(std::vector<KitMesh>&& meshes);
+        ~KitModel();
+
+        void AddMesh(KitEngineDevice* device, const KitMeshData& data);
+
+        void Bind(VkCommandBuffer command_buffer) const;
+        void Draw(VkCommandBuffer command_buffer) const;
     };
 }

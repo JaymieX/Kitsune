@@ -2,30 +2,9 @@
 
 #include <fstream>
 
-#include "KitModel.h"
 #include "Core/KitLogs.h"
-
-namespace
-{
-    std::vector<char> ReadFile(const std::string& file_path)
-    {
-        std::ifstream file(file_path, std::ios::ate | std::ios::binary);
-
-        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, file.is_open(), "File: {} was not opened!", file_path);
-
-        const size_t file_size = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(file_size);
-
-        file.seekg(0);
-        file.read(buffer.data(), file_size);
-
-        file.close();
-
-        KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, !buffer.empty(), "File: {} could not be properly read!", file_path);
-
-        return buffer;
-    }
-}
+#include "Core/KitUtil.h"
+#include "KitModel.h"
 
 namespace Kitsune
 {
@@ -39,8 +18,8 @@ namespace Kitsune
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_config_info.pipeline_layout != VK_NULL_HANDLE, "Graphic pipeline layout cannot be NULL!");
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_config_info.render_pass     != VK_NULL_HANDLE, "Graphic render pass cannot be NULL!");
         
-        std::vector<char> vert_code_buffer = ReadFile(vert_path);
-        std::vector<char> frag_code_buffer = ReadFile(frag_path);
+        std::vector<char> vert_code_buffer = KitUtil::ReadFile(vert_path);
+        std::vector<char> frag_code_buffer = KitUtil::ReadFile(frag_path);
 
         CreateShaderModule(vert_code_buffer, &vert_shader_module_);
         CreateShaderModule(frag_code_buffer, &frag_shader_module_);
@@ -62,8 +41,8 @@ namespace Kitsune
         shader_stages[1].pNext               = nullptr;
         shader_stages[1].pSpecializationInfo = nullptr;
         
-        std::vector<VkVertexInputAttributeDescription> attr_desc  = KitModel::KitVertex::GetAttributeDescriptions();
-        std::vector<VkVertexInputBindingDescription> binding_desc = KitModel::KitVertex::GetBindingDescriptions();
+        std::vector<VkVertexInputAttributeDescription> attr_desc  = KitVertex::GetAttributeDescriptions();
+        std::vector<VkVertexInputBindingDescription> binding_desc = KitVertex::GetBindingDescriptions();
         
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info{};
         vertex_input_state_create_info.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

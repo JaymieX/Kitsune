@@ -5,6 +5,7 @@
 #include "Core/Scene/KitGameObject.h"
 
 #include "Graphics/KitRenderer.h"
+#include "System/KitSystemManager.h"
 
 namespace Kitsune
 {
@@ -17,6 +18,8 @@ namespace Kitsune
         std::unique_ptr<KitWindow> window_;
         std::unique_ptr<KitEngineDevice> engine_device_;
         std::unique_ptr<KitRenderer> renderer_;
+
+        KitSystemManager system_manager_;
 
         std::vector<KitGameObject> game_objects_;
         
@@ -35,6 +38,7 @@ namespace Kitsune
         void Run();
 
     private:
+        std::shared_ptr<KitModel> LoadModel();
         void LoadGameObjects();
     };
 }

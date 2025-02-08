@@ -4,7 +4,7 @@
 
 namespace Kitsune
 {
-    std::vector<VkVertexInputBindingDescription> KitModel::KitVertex::GetBindingDescriptions()
+    std::vector<VkVertexInputBindingDescription> KitVertex::GetBindingDescriptions()
     {
         std::vector<VkVertexInputBindingDescription> binding_descriptions(1);
         binding_descriptions[0].binding   = 0;
@@ -15,7 +15,7 @@ namespace Kitsune
     }
 
     // Update whenever vertex struct was changed
-    std::vector<VkVertexInputAttributeDescription> KitModel::KitVertex::GetAttributeDescriptions()
+    std::vector<VkVertexInputAttributeDescription> KitVertex::GetAttributeDescriptions()
     {
         std::vector<VkVertexInputAttributeDescription> attribute_descriptions(2);
         // Position
@@ -33,15 +33,20 @@ namespace Kitsune
         return attribute_descriptions;
     }
 
-    KitModel::KitModel(KitEngineDevice* device, const KitModelData& data):
+    KitMesh::KitMesh(KitEngineDevice* device, const KitMeshData& data):
         device_(device)
     {
         CreateVertexBuffers(data.vertices);
         CreateIndexBuffers(data.indices);
     }
 
-    KitModel::~KitModel()
+    KitMesh::~KitMesh()
     {
+        if (is_moved_)
+        {
+            return;
+        }
+
         vkFreeMemory(device_->GetDevice(), vertex_buffer_memory_, nullptr);
         vkDestroyBuffer(device_->GetDevice(), vertex_buffer_, nullptr);
 
@@ -52,7 +57,50 @@ namespace Kitsune
         }
     }
 
-    void KitModel::Bind(VkCommandBuffer command_buffer) const
+    KitMesh::KitMesh(KitMesh&& other) :
+        device_              (other.device_),
+        vertex_buffer_       (other.vertex_buffer_),
+        vertex_buffer_memory_(other.vertex_buffer_memory_),
+        vertex_count_        (other.vertex_count_),
+        index_buffer_        (other.index_buffer_),
+        index_buffer_memory_ (other.index_buffer_memory_),
+        index_count_         (other.index_count_)
+    {
+        other.device_               = nullptr;
+        other.vertex_buffer_        = nullptr;
+        other.vertex_buffer_memory_ = nullptr;
+        other.vertex_count_         = 0;
+        other.index_buffer_         = nullptr;
+        other.index_buffer_memory_  = nullptr;
+        other.index_count_          = 0;
+
+        other.is_moved_             = true;
+    }
+
+    KitMesh& KitMesh::operator=(KitMesh&& other)
+    {
+        device_                     = other.device_;
+        vertex_buffer_              = other.vertex_buffer_;
+        vertex_buffer_memory_       = other.vertex_buffer_memory_;
+        vertex_count_               = other.vertex_count_;
+        index_buffer_               = other.index_buffer_;
+        index_buffer_memory_        = other.index_buffer_memory_;
+        index_count_                = other.index_count_;
+
+        other.device_               = nullptr;
+        other.vertex_buffer_        = nullptr;
+        other.vertex_buffer_memory_ = nullptr;
+        other.vertex_count_         = 0;
+        other.index_buffer_         = nullptr;
+        other.index_buffer_memory_  = nullptr;
+        other.index_count_          = 0;
+
+        other.is_moved_             = true;
+
+        return *this;
+    }
+
+    void KitMesh::Bind(VkCommandBuffer command_buffer) const
     {
         const VkBuffer bufffers[] = { vertex_buffer_ };
         VkDeviceSize offsets[] = { 0 };
@@ -64,7 +112,7 @@ namespace Kitsune
         }
     }
 
-    void KitModel::Draw(VkCommandBuffer command_buffer) const
+    void KitMesh::Draw(VkCommandBuffer command_buffer) const
     {
         if (is_index_available)
         {
@@ -76,7 +124,7 @@ namespace Kitsune
         }
     }
 
-    void KitModel::CreateVertexBuffers(const std::vector<KitVertex>& vertices)
+    void KitMesh::CreateVertexBuffers(const std::vector<KitVertex>& vertices)
     {
         vertex_count_ = static_cast<uint32_t>(vertices.size());
 
@@ -115,7 +163,7 @@ namespace Kitsune
         vkDestroyBuffer(device_->GetDevice(), staging_buffer, nullptr);
     }
 
-    void KitModel::CreateIndexBuffers(const std::vector<uint32_t>& indices)
+    void KitMesh::CreateIndexBuffers(const std::vector<uint32_t>& indices)
     {
         index_count_ = static_cast<uint32_t>(indices.size());
 
@@ -157,5 +205,36 @@ namespace Kitsune
         // Destroy staging buffer
         vkFreeMemory(device_->GetDevice(), staging_buffer_memory, nullptr);
         vkDestroyBuffer(device_->GetDevice(), staging_buffer, nullptr);
+    }
+
+    KitModel::KitModel(std::vector<KitMesh>&& meshes) :
+        meshes_(std::move(meshes))
+    {
+    }
+
+    KitModel::~KitModel()
+    {
+        meshes_.clear();
+    }
+
+    void KitModel::AddMesh(KitEngineDevice* device, const KitMeshData& data)
+    {
+        meshes_.emplace_back(device, data);
+    }
+
+    void KitModel::Bind(VkCommandBuffer command_buffer) const
+    {
+        for (const KitMesh& mesh : meshes_)
+        {
+            mesh.Bind(command_buffer);
+        }
+    }
+
+    void KitModel::Draw(VkCommandBuffer command_buffer) const
+    {
+        for (const KitMesh& mesh : meshes_)
+        {
+            mesh.Draw(command_buffer);
+        }
     }
 }

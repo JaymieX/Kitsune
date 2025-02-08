@@ -14,6 +14,7 @@
 
 #define LOG_ENGINE            "Engine"
 #define LOG_LOW_LEVEL_GRAPHIC "LowLevelGraphic"
+#define LOG_IO                "IO"
 
 namespace Kitsune
 {

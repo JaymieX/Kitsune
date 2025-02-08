@@ -13,6 +13,8 @@
 #include <chrono>
 
 #include "KitInputController.h"
+#include "System/Subsystems/KitResourceSystem.h"
+#include "System/Subsystems/Caches/KitModelResourceCache.h"
 
 namespace Kitsune
 {
@@ -21,15 +23,20 @@ namespace Kitsune
         KitLog::InitLoggers();
         KIT_LOG(LOG_ENGINE, Kitsune::KitLogLevel::LOG_INFO, "Application starting...");
 
-        window_        = std::make_unique<KitWindow>(KitWindowInfo(default_width, default_height, default_title));
+        window_ = std::make_unique<KitWindow>(KitWindowInfo(default_width, default_height, default_title));
         engine_device_ = std::make_unique<KitEngineDevice>(window_.get());
-        renderer_      = std::make_unique<KitRenderer>(window_.get(), engine_device_.get());
+        renderer_ = std::make_unique<KitRenderer>(window_.get(), engine_device_.get());
+
+        system_manager_.Init(engine_device_.get());
+        system_manager_.AddSystem<KitResourceSystem>();
 
         LoadGameObjects();
     }
 
     KitApplication::~KitApplication()
     {
+        system_manager_.End();
+
         KIT_LOG(LOG_ENGINE, Kitsune::KitLogLevel::LOG_INFO, "Application closing...");
     }
 
@@ -53,6 +60,8 @@ namespace Kitsune
             float frame_time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
             start = now;
 
+            system_manager_.Update(frame_time);
+
             input_controller.MoveXZ(window_->window_, frame_time, viewer_object);
             camera.SetViewYXZ(viewer_object.transform.translation, viewer_object.transform.rotation);
             
@@ -74,7 +83,7 @@ namespace Kitsune
     }
 
     std::unique_ptr<KitModel> createCubeModel(KitEngineDevice* device, glm::vec3 offset) {
-      KitModel::KitModelData modelBuilder{};
+      KitMeshData modelBuilder{};
         modelBuilder.vertices = {
             // left face (white)
             {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
@@ -118,15 +127,30 @@ namespace Kitsune
        
         modelBuilder.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
                                 12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
-       
-        return std::make_unique<KitModel>(device, modelBuilder);
+
+        std::unique_ptr<KitModel> result = std::make_unique<KitModel>();
+        result->AddMesh(device, modelBuilder);
+        return result;
+    }
+
+    std::shared_ptr<KitModel> KitApplication::LoadModel()
+    {
+        KitResourceSystem* resource_system = system_manager_.GetSystem<KitResourceSystem>();
+        resource_system->RegisterCache<KitModelResourceCache>();
+        KitModelResourceCache* model_resource = resource_system->GetCache<KitModelResourceCache>();
+
+        model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/colored_cube.obj");
+
+        return model_resource->Get("pot");
     }
 
     void KitApplication::LoadGameObjects()
     {
         std::shared_ptr<KitModel> cube_model = createCubeModel(engine_device_.get(), glm::vec3(0.0f));
+        std::shared_ptr<KitModel> vase_model = LoadModel();
+
         auto cube_go = KitGameObject::CreateGameObject();
-        cube_go.model = cube_model;
+        cube_go.model = vase_model;
         cube_go.transform.translation = {.0f, .0f, 2.5f};
         cube_go.transform.scale       = {.5f, .5f, .5f};
         

@@ -28,6 +28,15 @@ set(no_group_source_files
     "Src/Graphics/KitWindow.h"
     "Src/Graphics/RenderSystems/KitBasicRenderSystem.cpp"
     "Src/Graphics/RenderSystems/KitBasicRenderSystem.h"
+    "Src/Core/System/KitSystem.h"
+    "Src/Core/System/KitSystemManager.cpp"
+    "Src/Core/System/KitSystemManager.h"
+    "Src/Core/System/Subsystems/KitResourceSystem.cpp"
+    "Src/Core/System/Subsystems/KitResourceSystem.h"
+    "Src/Core/System/Subsystems/KitResourceCache.h"
+    "Src/Core/System/Subsystems/Caches/KitModelResourceCache.cpp"
+    "Src/Core/System/Subsystems/Caches/KitModelResourceCache.h"
+    "Src/Core/KitUtil.h"
 )
 source_group("" FILES ${no_group_source_files})
 
@@ -70,6 +79,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glm;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/spdlog/include;"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/Src"
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
@@ -78,6 +88,7 @@ elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glm;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/spdlog/include;"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/Src"
     )
 endif()
@@ -189,12 +200,14 @@ endif()
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "vulkan-1;"
-        "glfw3"
+        "glfw3;"
+        "assimp-vc143-mt"
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "vulkan-1;"
-        "glfw3"
+        "glfw3;"
+        "assimp-vc143-mt"
     )
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
@@ -202,12 +215,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
     target_link_directories(${PROJECT_NAME} PRIVATE
         "$ENV{VULKAN_SDK}/Lib/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/;"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/build/lib/Release/"
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_link_directories(${PROJECT_NAME} PRIVATE
         "$ENV{VULKAN_SDK}/Lib/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/;"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/build/lib/Release/"
     )
 endif()
 
