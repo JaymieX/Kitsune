@@ -8,8 +8,8 @@ namespace Kitsune
 {
     struct KitPushConstantsData
     {
-        glm::mat4   transform{1.f}; // Default id matrix init
-        alignas(16) glm::vec3 color;
+        glm::mat4 transform{1.f}; // Default id matrix init
+        glm::mat4 normal_matrix{1.f};
     };
     
     class KitBasicRenderSystem

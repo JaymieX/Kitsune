@@ -29,9 +29,11 @@ namespace Kitsune
 
         for (auto& game_obj : game_objects)
         {
+            auto model_matrix = game_obj.transform.ToMatrix();
+
             KitPushConstantsData push_constants_data{};
-            push_constants_data.color     = game_obj.color;
-            push_constants_data.transform = projection_view * game_obj.transform.ToMatrix();
+            push_constants_data.transform        = projection_view * model_matrix;
+            push_constants_data.normal_matrix = game_obj.transform.GetNormalMatrix();
 
             vkCmdPushConstants(
                 command_buffer,

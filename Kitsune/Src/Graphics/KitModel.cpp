@@ -17,19 +17,19 @@ namespace Kitsune
     // Update whenever vertex struct was changed
     std::vector<VkVertexInputAttributeDescription> KitVertex::GetAttributeDescriptions()
     {
-        std::vector<VkVertexInputAttributeDescription> attribute_descriptions(2);
+        std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
         // Position
-        attribute_descriptions[0].binding  = 0;
-        attribute_descriptions[0].location = 0;
-        attribute_descriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT; // vec3
-        attribute_descriptions[0].offset   = offsetof(KitVertex, position);
+        attribute_descriptions.emplace_back(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(KitVertex, position));
 
         // Color
-        attribute_descriptions[1].binding  = 0;
-        attribute_descriptions[1].location = 1; // Loc used in ver shader
-        attribute_descriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT; // vec3
-        attribute_descriptions[1].offset   = offsetof(KitVertex, color);
-        
+        attribute_descriptions.emplace_back(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(KitVertex, color));
+
+        // Normal
+        attribute_descriptions.emplace_back(2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(KitVertex, normal));
+
+        // UV
+        attribute_descriptions.emplace_back(3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(KitVertex, uv));
+
         return attribute_descriptions;
     }
 

@@ -33,6 +33,23 @@ namespace Kitsune
                 vertex.color = {1.f, 1.f, 1.f};
             }
 
+            // normal
+            vector.x = mesh->mNormals[i].x;
+            vector.y = mesh->mNormals[i].y;
+            vector.z = mesh->mNormals[i].z;
+            vertex.normal = vector;
+
+            // uv
+            if(mesh->mTextureCoords[0])
+            {
+                glm::vec2 vec;
+                vec.x = mesh->mTextureCoords[0][i].x;
+                vec.y = mesh->mTextureCoords[0][i].y;
+                vertex.uv = vec;
+            }
+            else
+                vertex.uv = glm::vec2(0.0f, 0.0f);
+
             vertices.push_back(vertex);
         }
 

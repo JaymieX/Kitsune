@@ -139,7 +139,7 @@ namespace Kitsune
         resource_system->RegisterCache<KitModelResourceCache>();
         KitModelResourceCache* model_resource = resource_system->GetCache<KitModelResourceCache>();
 
-        model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/colored_cube.obj");
+        model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/smooth_vase.obj");
 
         return model_resource->Get("pot");
     }
@@ -152,7 +152,7 @@ namespace Kitsune
         auto cube_go = KitGameObject::CreateGameObject();
         cube_go.model = vase_model;
         cube_go.transform.translation = {.0f, .0f, 2.5f};
-        cube_go.transform.scale       = {.5f, .5f, .5f};
+        cube_go.transform.scale       = {2.5f, 2.5f, 2.5f};
         
         game_objects_.push_back(cube_go);
     }

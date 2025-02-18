@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/vec2.hpp>
 
+#include "glm/gtc/matrix_inverse.hpp"
+
 namespace Kitsune
 {
     struct KitTransform
@@ -30,6 +32,12 @@ namespace Kitsune
             transform = glm::scale(transform, scale);
 
             return transform;
+        }
+
+        glm::mat3 GetNormalMatrix() const
+        {
+            const glm::mat3x3 model_matrix3(ToMatrix());
+            return glm::inverseTranspose(model_matrix3);
         }
     };
     
