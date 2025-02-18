@@ -17,3 +17,4 @@ riderModule.iml
 *.vcxproj
 *.vcxproj.user
 *.user
+*.vcxproj.filters
