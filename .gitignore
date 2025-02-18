@@ -5,6 +5,15 @@ riderModule.iml
 /_ReSharper.Caches/
 /cmake-build-debug/
 /cmake-build-release/
+/CMakeFiles/
 /x64/
 /.vs/
+/.idea/
 /Kitsune/logs/
+/Kitsune/x64/
+/Kitsune/.idea/
+
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.user
