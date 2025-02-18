@@ -50,6 +50,12 @@ set(ALL_FILES
     ${Source_Files}
 )
 
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
+add_subdirectory(../Libraries/assimp ../Libraries/assimp)
+add_subdirectory(../Libraries/glfw ../Libraries/glfw)
+add_subdirectory(../Libraries/glm ../Libraries/glm)
+add_subdirectory(../Libraries/spdlog ../Libraries/spdlog)
+
 ################################################################################
 # Target
 ################################################################################
@@ -76,19 +82,15 @@ endif()
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$ENV{VULKAN_SDK}/Include;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glm;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/spdlog/include;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/Src"
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$ENV{VULKAN_SDK}/Include;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glm;"
         "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/spdlog/include;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/include;"
         "${CMAKE_CURRENT_SOURCE_DIR}/Src"
     )
 endif()
@@ -200,14 +202,14 @@ endif()
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "vulkan-1;"
-        "glfw3;"
-        "assimp-vc143-mt"
+            glfw
+            assimp
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "vulkan-1;"
-        "glfw3;"
-        "assimp-vc143-mt"
+            glfw
+            assimp
     )
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
@@ -215,14 +217,26 @@ target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
     target_link_directories(${PROJECT_NAME} PRIVATE
         "$ENV{VULKAN_SDK}/Lib/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/build/lib/Release/"
     )
 elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_link_directories(${PROJECT_NAME} PRIVATE
         "$ENV{VULKAN_SDK}/Lib/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/glfw/build/src/Release/;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../Libraries/assimp/build/lib/Release/"
     )
 endif()
 
+if(MSVC)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_BINARY_DIR}/Libraries/assimp/bin/assimp-vc143-mtd.dll"
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_BINARY_DIR}/Libraries/glfw/src/glfw3d.dll"
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/Shader"
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/Shader)
+endif()
