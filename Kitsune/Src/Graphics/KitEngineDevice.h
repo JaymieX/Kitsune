@@ -58,6 +58,8 @@ namespace Kitsune
         VkCommandPool command_pool_;
 
     public:
+        VkPhysicalDeviceProperties properties;
+
         explicit KitEngineDevice(KitWindow* window);
         ~KitEngineDevice();
 

@@ -50,6 +50,8 @@ set(ALL_FILES
     ${Source_Files}
         Src/Graphics/KitGraphicsBuffer.cpp
         Src/Graphics/KitGraphicsBuffer.h
+        Src/Graphics/KitGlobalGraphicsDefines.h
+        Src/Graphics/RenderSystems/KitFrameInfo.h
 )
 
 set(ASSIMP_WARNINGS_AS_ERRORS OFF)

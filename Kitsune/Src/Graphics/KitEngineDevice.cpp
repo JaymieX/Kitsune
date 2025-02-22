@@ -154,6 +154,8 @@ namespace Kitsune
             }
 
             KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, physical_device_ != VK_NULL_HANDLE, "failed to find a suitable GPU!");
+
+            vkGetPhysicalDeviceProperties(physical_device_, &properties);
         }
         // --- End picking physical device ---
 

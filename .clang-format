@@ -13,7 +13,7 @@ AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Allman
 BreakConstructorInitializers: AfterColon
 PackConstructorInitializers: Never
-ColumnLimit: 150
+ColumnLimit: 130
 BinPackParameters: false
 BinPackArguments: false
 PenaltyExcessCharacter: 100

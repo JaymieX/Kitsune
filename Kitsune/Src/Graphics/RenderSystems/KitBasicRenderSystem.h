@@ -3,6 +3,7 @@
 #include "Graphics/KitCamera.h"
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitPipeline.h"
+#include "KitFrameInfo.h"
 
 namespace Kitsune
 {
@@ -23,7 +24,7 @@ namespace Kitsune
         KitBasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass);
         ~KitBasicRenderSystem();
 
-        void RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects, const KitCamera& camera) const;
+        void RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const;
 
     private:
         void CreatePipelineLayout();

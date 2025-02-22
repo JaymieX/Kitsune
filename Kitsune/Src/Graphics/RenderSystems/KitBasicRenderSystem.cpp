@@ -21,11 +21,11 @@ namespace Kitsune
         vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
     }
 
-    void KitBasicRenderSystem::RenderGameObjects(VkCommandBuffer command_buffer, std::vector<KitGameObject>& game_objects, const KitCamera& camera) const
+    void KitBasicRenderSystem::RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const
     {
-        pipeline_->Bind(command_buffer);
+        pipeline_->Bind(frame_info.command_buffer);
 
-        auto projection_view = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+        auto projection_view = frame_info.camera->GetProjectionMatrix() * frame_info.camera->GetViewMatrix();
 
         for (auto& game_obj : game_objects)
         {
@@ -36,15 +36,15 @@ namespace Kitsune
             push_constants_data.normal_matrix = game_obj.transform.GetNormalMatrix();
 
             vkCmdPushConstants(
-                command_buffer,
+                frame_info.command_buffer,
                 pipeline_layout_,
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0,
                 sizeof(push_constants_data),
                 &push_constants_data);
 
-            game_obj.model->Bind(command_buffer);
-            game_obj.model->Draw(command_buffer);
+            game_obj.model->Bind(frame_info.command_buffer);
+            game_obj.model->Draw(frame_info.command_buffer);
         }
     }
 
