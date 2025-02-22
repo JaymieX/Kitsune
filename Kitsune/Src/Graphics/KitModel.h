@@ -3,9 +3,11 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <memory>
 #include <vulkan/vulkan_core.h>
 
 #include "KitEngineDevice.h"
+#include "KitGraphicsBuffer.h"
 
 namespace Kitsune
 {
@@ -32,16 +34,14 @@ namespace Kitsune
 
         bool is_index_available = false;
 
-        VkBuffer vertex_buffer_;
-        VkDeviceMemory vertex_buffer_memory_;
-        uint32_t vertex_count_;
+        std::unique_ptr<KitGraphicsBuffer> vertex_buffer_;
+        uint32_t                           vertex_count_;
 
-        VkBuffer index_buffer_;
-        VkDeviceMemory index_buffer_memory_;
-        uint32_t index_count_;
+        std::unique_ptr<KitGraphicsBuffer> index_buffer_;
+        uint32_t                           index_count_;
 
         bool is_moved_ = false;
-        
+
     public:
         KitMesh(KitEngineDevice* device, const KitMeshData& data);
         ~KitMesh();
@@ -71,4 +71,4 @@ namespace Kitsune
         void Bind(VkCommandBuffer command_buffer) const;
         void Draw(VkCommandBuffer command_buffer) const;
     };
-}
+} // namespace Kitsune

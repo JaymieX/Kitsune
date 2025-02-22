@@ -139,7 +139,7 @@ namespace Kitsune
         resource_system->RegisterCache<KitModelResourceCache>();
         KitModelResourceCache* model_resource = resource_system->GetCache<KitModelResourceCache>();
 
-        model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/smooth_vase.obj");
+        model_resource->LoadFromFile("pot", "C:/Users/jaymi/Downloads/smooth_vase.obj");
 
         return model_resource->Get("pot");
     }

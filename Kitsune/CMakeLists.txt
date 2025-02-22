@@ -48,6 +48,8 @@ source_group("Source Files" FILES ${Source_Files})
 set(ALL_FILES
     ${no_group_source_files}
     ${Source_Files}
+        Src/Graphics/KitGraphicsBuffer.cpp
+        Src/Graphics/KitGraphicsBuffer.h
 )
 
 set(ASSIMP_WARNINGS_AS_ERRORS OFF)
