@@ -16,3 +16,6 @@
 [submodule "Libraries/stb"]
 	path = Libraries/stb
 	url = https://github.com/nothings/stb.git
+[submodule "Libraries/flecs"]
+	path = Libraries/flecs
+	url = https://github.com/SanderMertens/flecs.git
