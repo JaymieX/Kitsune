@@ -16,7 +16,7 @@ PackConstructorInitializers: Never
 ColumnLimit: 130
 BinPackParameters: false
 BinPackArguments: false
-PenaltyExcessCharacter: 100
+PenaltyExcessCharacter: 20
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 IncludeCategories:
   - Regex: '^<.*'

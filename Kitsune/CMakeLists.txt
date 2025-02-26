@@ -52,6 +52,8 @@ set(ALL_FILES
         Src/Graphics/KitGraphicsBuffer.h
         Src/Graphics/KitGlobalGraphicsDefines.h
         Src/Graphics/RenderSystems/KitFrameInfo.h
+        Src/Graphics/KitDescriptor.cpp
+        Src/Graphics/KitDescriptor.h
 )
 
 set(ASSIMP_WARNINGS_AS_ERRORS OFF)
