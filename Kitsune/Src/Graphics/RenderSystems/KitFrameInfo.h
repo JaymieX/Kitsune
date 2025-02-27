@@ -12,5 +12,6 @@ namespace Kitsune
         float           frame_time;
         VkCommandBuffer command_buffer;
         KitCamera*      camera;
+        VkDescriptorSet descriptor_set;
     };
 } // namespace Kitsune

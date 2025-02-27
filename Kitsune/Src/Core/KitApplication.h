@@ -3,6 +3,7 @@
 
 #include "Graphics/KitWindow.h"
 #include "Core/Scene/KitGameObject.h"
+#include "Graphics/KitDescriptor.h"
 
 #include "Graphics/KitRenderer.h"
 #include "System/KitSystemManager.h"
@@ -21,6 +22,7 @@ namespace Kitsune
 
         KitSystemManager system_manager_;
 
+        std::unique_ptr<KitDescriptorPool> descriptor_pool_;
         std::vector<KitGameObject> game_objects_;
         
     public:

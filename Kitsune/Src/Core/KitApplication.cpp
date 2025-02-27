@@ -31,6 +31,11 @@ namespace Kitsune
         system_manager_.Init(engine_device_.get());
         system_manager_.AddSystem<KitResourceSystem>();
 
+        descriptor_pool_ = KitDescriptorPool::KitDescriptorPoolBuilder(engine_device_.get())
+                           .SetMaxSets(KitSwapChain::MAX_FRAMES_IN_FLIGHT)
+                           .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, KitSwapChain::MAX_FRAMES_IN_FLIGHT)
+                           .Build();
+
         LoadGameObjects();
     }
 
@@ -55,7 +60,20 @@ namespace Kitsune
             ubo_buffers[i]->Map();
         }
 
-        KitBasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass());
+        auto global_set_layout = KitDescriptorSetLayout::KitDescriptorSetLayoutBuilder(engine_device_.get())
+                          .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                          .Build();
+
+        std::vector<VkDescriptorSet> global_descriptor_sets(KitSwapChain::MAX_FRAMES_IN_FLIGHT);
+        for (int i = 0; i < KitSwapChain::MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            auto buffer_info = ubo_buffers[i]->DescriptorInfo();
+            KitDescriptorWriter(*global_set_layout, *descriptor_pool_)
+            .WriteBuffer(0, &buffer_info)
+            .Build(global_descriptor_sets[i]);
+        }
+
+        KitBasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass(), global_set_layout->GetDescriptorSetLayout());
         KitCamera            camera;
         // camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
         camera.SetViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -85,7 +103,7 @@ namespace Kitsune
             if (VkCommandBuffer command_buffer = renderer_->BeginFrame())
             {
                 int          frame_index = renderer_->GetCurrentFrameIndex();
-                KitFrameInfo frame_info{frame_index, frame_time, command_buffer, &camera};
+                KitFrameInfo frame_info{frame_index, frame_time, command_buffer, &camera, global_descriptor_sets[frame_index]};
 
                 // Update
                 KitGlobalUBO global_ubo;
@@ -111,7 +129,7 @@ namespace Kitsune
         resource_system->RegisterCache<KitModelResourceCache>();
         KitModelResourceCache* model_resource = resource_system->GetCache<KitModelResourceCache>();
 
-        model_resource->LoadFromFile("pot", "C:/Users/jaymi/Downloads/smooth_vase.obj");
+        model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/smooth_vase.obj");
 
         return model_resource->Get("pot");
     }
