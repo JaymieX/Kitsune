@@ -13,6 +13,9 @@ layout(location = 0) out vec3 fragColor;
 layout(set = 0, binding = 0) uniform GlobalUBO {
 	mat4 projectionViewMatrix;
 	vec3 directionToLight;
+	vec4 ambientColor;
+	vec3 pointLightPosition;
+	vec4 pointLightColor;
 } ubo;
 
 layout(push_constant) uniform KitPushConstantsData {
@@ -20,11 +23,10 @@ layout(push_constant) uniform KitPushConstantsData {
 	mat4 normalMatrix;
 } kitPushConstantsData;
 
-const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
-const float AMBIENT_LIGHT = 0.02;
-
 void main() {
-	gl_Position = ubo.projectionViewMatrix * kitPushConstantsData.modelMatrix * vec4(position, 1.0);
+	vec4 worldPosition = kitPushConstantsData.modelMatrix * vec4(position, 1.0);
+
+	gl_Position = ubo.projectionViewMatrix * worldPosition;
 
 	// No need for 4x4 since normal is just a direction
 	// mat3 normalMatrix = transpose(inverse(mat3(kitPushConstantsData.model)));
@@ -32,7 +34,16 @@ void main() {
 
 	vec3 normalWorldSpace = normalize(mat3(kitPushConstantsData.normalMatrix) * normal);
 
-	float lightIntensity = AMBIENT_LIGHT + max(dot(normalWorldSpace, ubo.directionToLight), 0);
+	vec3 directionToPointLight = ubo.pointLightPosition - worldPosition.xyz;
 
-	fragColor = lightIntensity * color;
+	float attenuation = 1.0 / dot(directionToPointLight, directionToPointLight); // distance squared cheez
+
+	vec3 pointLightColor = ubo.pointLightColor.xyz * ubo.pointLightColor.w * attenuation;
+	vec3 ambientLight = ubo.ambientColor.xyz * ubo.ambientColor.w;
+
+	vec3 diffuseLight = pointLightColor * max(dot(normalWorldSpace, normalize(directionToPointLight)), 0);
+
+	// float lightIntensity = AMBIENT_LIGHT + max(dot(normalWorldSpace, ubo.directionToLight), 0);
+
+	fragColor = (diffuseLight + ambientLight) * color;
 }

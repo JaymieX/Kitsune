@@ -24,6 +24,9 @@ namespace Kitsune
 
         std::unique_ptr<KitDescriptorPool> descriptor_pool_;
         std::vector<KitGameObject> game_objects_;
+
+        std::shared_ptr<KitModel> quad_model_ = nullptr;
+        std::shared_ptr<KitModel> vase_model_ = nullptr;
         
     public:
         KitApplication();
@@ -40,7 +43,7 @@ namespace Kitsune
         void Run();
 
     private:
-        std::shared_ptr<KitModel> LoadModel();
+        void LoadModel();
         void LoadGameObjects();
     };
 }

@@ -51,6 +51,7 @@ namespace Kitsune
                 0,
                 sizeof(push_constants_data),
                 &push_constants_data);
+
             game_obj.model->Bind(frame_info.command_buffer);
             game_obj.model->Draw(frame_info.command_buffer);
         }

@@ -61,20 +61,23 @@ namespace Kitsune
         }
 
         auto global_set_layout = KitDescriptorSetLayout::KitDescriptorSetLayoutBuilder(engine_device_.get())
-                          .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-                          .Build();
+                                 .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                                 .Build();
 
         std::vector<VkDescriptorSet> global_descriptor_sets(KitSwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < KitSwapChain::MAX_FRAMES_IN_FLIGHT; i++)
         {
             auto buffer_info = ubo_buffers[i]->DescriptorInfo();
             KitDescriptorWriter(*global_set_layout, *descriptor_pool_)
-            .WriteBuffer(0, &buffer_info)
-            .Build(global_descriptor_sets[i]);
+                .WriteBuffer(0, &buffer_info)
+                .Build(global_descriptor_sets[i]);
         }
 
-        KitBasicRenderSystem basic_render_system(engine_device_.get(), renderer_->GetRenderPass(), global_set_layout->GetDescriptorSetLayout());
-        KitCamera            camera;
+        KitBasicRenderSystem basic_render_system(
+            engine_device_.get(),
+            renderer_->GetRenderPass(),
+            global_set_layout->GetDescriptorSetLayout());
+        KitCamera camera;
         // camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
         camera.SetViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
 
@@ -123,26 +126,31 @@ namespace Kitsune
         engine_device_->DeviceWaitIdle();
     }
 
-    std::shared_ptr<KitModel> KitApplication::LoadModel()
+    void KitApplication::LoadModel()
+    {
+    }
+
+    void KitApplication::LoadGameObjects()
     {
         KitResourceSystem* resource_system = system_manager_.GetSystem<KitResourceSystem>();
         resource_system->RegisterCache<KitModelResourceCache>();
         KitModelResourceCache* model_resource = resource_system->GetCache<KitModelResourceCache>();
 
+        model_resource->LoadFromFile("quad", "Resources/quad.obj");
+        quad_model_ = model_resource->Get("quad");
+
         model_resource->LoadFromFile("pot", "C:/Users/jaymi/OneDrive/Desktop/smooth_vase.obj");
+        vase_model_ = model_resource->Get("pot");
 
-        return model_resource->Get("pot");
-    }
+        auto vase_go            = KitGameObject::CreateGameObject();
+        vase_go.model           = vase_model_;
+        vase_go.transform.scale = {2.5f, 2.5f, 2.5f};
 
-    void KitApplication::LoadGameObjects()
-    {
-        std::shared_ptr<KitModel> vase_model = LoadModel();
+        auto quad_go            = KitGameObject::CreateGameObject();
+        quad_go.model           = quad_model_;
+        quad_go.transform.scale = {2.5f, 2.5f, 2.5f};
 
-        auto cube_go                  = KitGameObject::CreateGameObject();
-        cube_go.model                 = vase_model;
-        cube_go.transform.translation = {.0f, .0f, 2.5f};
-        cube_go.transform.scale       = {2.5f, 2.5f, 2.5f};
-
-        game_objects_.push_back(cube_go);
+        game_objects_.push_back(vase_go);
+        game_objects_.push_back(quad_go);
     }
 } // namespace Kitsune
