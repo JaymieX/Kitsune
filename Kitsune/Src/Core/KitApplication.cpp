@@ -61,7 +61,7 @@ namespace Kitsune
         }
 
         auto global_set_layout = KitDescriptorSetLayout::KitDescriptorSetLayoutBuilder(engine_device_.get())
-                                 .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                                 .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL)
                                  .Build();
 
         std::vector<VkDescriptorSet> global_descriptor_sets(KitSwapChain::MAX_FRAMES_IN_FLIGHT);
