@@ -118,8 +118,9 @@ namespace Kitsune
 
                 // Update
                 KitGlobalUBO global_ubo;
-                global_ubo.projection = camera.GetProjectionMatrix();
-                global_ubo.view       = camera.GetViewMatrix();
+                global_ubo.projection   = camera.GetProjectionMatrix();
+                global_ubo.view         = camera.GetViewMatrix();
+                global_ubo.inverse_view = camera.GetInverseViewMatrix();
                 billboard_render_system.Update(frame_info, global_ubo);
                 ubo_buffers[frame_index]->WriteToBuffer(&global_ubo);
                 ubo_buffers[frame_index]->Flush(); // Manual flush because we didn't use host coherent
