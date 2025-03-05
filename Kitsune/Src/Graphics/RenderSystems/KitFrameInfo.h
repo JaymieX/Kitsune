@@ -13,5 +13,6 @@ namespace Kitsune
         VkCommandBuffer command_buffer;
         KitCamera*      camera;
         VkDescriptorSet descriptor_set;
+        std::vector<KitGameObject>& game_objects;
     };
 } // namespace Kitsune

@@ -10,6 +10,12 @@
 
 namespace Kitsune
 {
+    struct KitPushConstantsData
+    {
+        glm::mat4 model_matrix{1.f}; // Default id matrix init
+        glm::mat4 normal_matrix{1.f};
+    };
+
     KitBasicRenderSystem::KitBasicRenderSystem(
         KitEngineDevice*      device,
         VkRenderPass          render_pass,
@@ -41,6 +47,11 @@ namespace Kitsune
 
         for (auto& game_obj : game_objects)
         {
+            if (game_obj.model == nullptr)
+            {
+                continue;
+            }
+
             KitPushConstantsData push_constants_data{};
             push_constants_data.model_matrix  = game_obj.transform.ToMatrix();
             push_constants_data.normal_matrix = game_obj.transform.GetNormalMatrix();

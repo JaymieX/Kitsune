@@ -113,12 +113,14 @@ namespace Kitsune
             if (VkCommandBuffer command_buffer = renderer_->BeginFrame())
             {
                 int          frame_index = renderer_->GetCurrentFrameIndex();
-                KitFrameInfo frame_info{frame_index, frame_time, command_buffer, &camera, global_descriptor_sets[frame_index]};
+                KitFrameInfo frame_info{frame_index, frame_time, command_buffer, &camera, global_descriptor_sets[frame_index],
+                                        game_objects_};
 
                 // Update
                 KitGlobalUBO global_ubo;
                 global_ubo.projection = camera.GetProjectionMatrix();
                 global_ubo.view       = camera.GetViewMatrix();
+                billboard_render_system.Update(frame_info, global_ubo);
                 ubo_buffers[frame_index]->WriteToBuffer(&global_ubo);
                 ubo_buffers[frame_index]->Flush(); // Manual flush because we didn't use host coherent
 
@@ -161,5 +163,26 @@ namespace Kitsune
 
         game_objects_.push_back(vase_go);
         game_objects_.push_back(quad_go);
+
+        std::vector<glm::vec3> lightColors{
+          {1.f, .1f, .1f},
+          {.1f, .1f, 1.f},
+          {.1f, 1.f, .1f},
+          {1.f, 1.f, .1f},
+          {.1f, 1.f, 1.f},
+          {1.f, 1.f, 1.f}  //
+        };
+
+        for (int i = 0; i < lightColors.size(); i++)
+        {
+            auto point_light  = KitGameObject::CreatePointLight(0.2f);
+            point_light.color = lightColors[i];
+            auto rotate_light = glm::rotate(
+                glm::mat4(1.f),
+                (i * glm::two_pi<float>()) / lightColors.size(),
+                {0.f, -1.f, 0.f});
+            point_light.transform.translation = glm::vec3(rotate_light * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+            game_objects_.push_back(point_light);
+        }
     }
 } // namespace Kitsune

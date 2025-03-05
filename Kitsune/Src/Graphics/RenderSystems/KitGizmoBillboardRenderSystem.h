@@ -4,6 +4,7 @@
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitPipeline.h"
 #include "KitFrameInfo.h"
+#include "Graphics/KitGlobalGraphicsDefines.h"
 
 namespace Kitsune
 {
@@ -18,6 +19,7 @@ namespace Kitsune
         KitGizmoBillboardRenderSystem(KitEngineDevice* device, VkRenderPass render_pass, VkDescriptorSetLayout descriptor_set_layout);
         ~KitGizmoBillboardRenderSystem();
 
+        void Update(const KitFrameInfo &frame_info, KitGlobalUBO &ubo);
         void RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const;
 
     private:
