@@ -7,7 +7,7 @@
 
 namespace Kitsune
 {
-    class KitBasicRenderSystem
+    class KitGizmoBillboardRenderSystem
     {
         KitEngineDevice* engine_device_;
 
@@ -15,8 +15,8 @@ namespace Kitsune
         VkPipelineLayout             pipeline_layout_;
 
     public:
-        KitBasicRenderSystem(KitEngineDevice* device, VkRenderPass render_pass, VkDescriptorSetLayout descriptor_set_layout);
-        ~KitBasicRenderSystem();
+        KitGizmoBillboardRenderSystem(KitEngineDevice* device, VkRenderPass render_pass, VkDescriptorSetLayout descriptor_set_layout);
+        ~KitGizmoBillboardRenderSystem();
 
         void RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const;
 

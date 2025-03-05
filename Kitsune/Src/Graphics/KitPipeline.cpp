@@ -17,7 +17,7 @@ namespace Kitsune
     {
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_config_info.pipeline_layout != VK_NULL_HANDLE, "Graphic pipeline layout cannot be NULL!");
         KIT_ASSERT(LOG_LOW_LEVEL_GRAPHIC, pipeline_config_info.render_pass     != VK_NULL_HANDLE, "Graphic render pass cannot be NULL!");
-        
+
         std::vector<char> vert_code_buffer = KitUtil::ReadFile(vert_path);
         std::vector<char> frag_code_buffer = KitUtil::ReadFile(frag_path);
 
@@ -40,10 +40,10 @@ namespace Kitsune
         shader_stages[1].flags               = 0;
         shader_stages[1].pNext               = nullptr;
         shader_stages[1].pSpecializationInfo = nullptr;
-        
-        std::vector<VkVertexInputAttributeDescription> attr_desc  = KitVertex::GetAttributeDescriptions();
-        std::vector<VkVertexInputBindingDescription> binding_desc = KitVertex::GetBindingDescriptions();
-        
+
+        const std::vector<VkVertexInputAttributeDescription>& attr_desc  = pipeline_config_info.vertex_input_attribute_descriptions;
+        const std::vector<VkVertexInputBindingDescription>& binding_desc = pipeline_config_info.vertex_input_binding_descriptions;
+
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info{};
         vertex_input_state_create_info.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attr_desc.size());
@@ -83,10 +83,13 @@ namespace Kitsune
 
     void KitPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
     {
+        config_info.vertex_input_attribute_descriptions = KitVertex::GetAttributeDescriptions();
+        config_info.vertex_input_binding_descriptions   = KitVertex::GetBindingDescriptions();
+
         config_info.input_assembly_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         config_info.input_assembly_info.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         config_info.input_assembly_info.primitiveRestartEnable = VK_FALSE;
-        
+
         config_info.viewport_state_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         config_info.viewport_state_info.viewportCount          = 1;
         config_info.viewport_state_info.pViewports             = nullptr;
@@ -125,7 +128,7 @@ namespace Kitsune
         config_info.color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
         config_info.color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
         config_info.color_blend_attachment.alphaBlendOp        = VK_BLEND_OP_ADD;       // Optional
-        
+
         config_info.color_blend_info.sType                     = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         config_info.color_blend_info.logicOpEnable             = VK_FALSE;
         config_info.color_blend_info.logicOp                   = VK_LOGIC_OP_COPY;  // Optional

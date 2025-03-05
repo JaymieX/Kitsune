@@ -54,6 +54,8 @@ set(ALL_FILES
         Src/Graphics/RenderSystems/KitFrameInfo.h
         Src/Graphics/KitDescriptor.cpp
         Src/Graphics/KitDescriptor.h
+        Src/Graphics/RenderSystems/KitGizmoBillboardRenderSystem.cpp
+        Src/Graphics/RenderSystems/KitGizmoBillboardRenderSystem.h
 )
 
 set(ASSIMP_WARNINGS_AS_ERRORS OFF)

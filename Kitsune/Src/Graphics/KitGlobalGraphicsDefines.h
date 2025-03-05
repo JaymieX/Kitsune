@@ -3,9 +3,16 @@
 
 namespace Kitsune
 {
+    struct KitPushConstantsData
+    {
+        glm::mat4 model_matrix{1.f}; // Default id matrix init
+        glm::mat4 normal_matrix{1.f};
+    };
+
     struct KitGlobalUBO
     {
-        glm::mat4             projection_view{1.f};
+        glm::mat4             projection{1.f};
+        glm::mat4             view{1.f};
         alignas(16) glm::vec3 light_direction = glm::normalize(glm::vec3(1.f, -3.f, -1.f));
 
         alignas(16) glm::vec4 ambient_color        = glm::vec4(1.f, 1.f, 1.f, .02f);

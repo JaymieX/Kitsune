@@ -13,7 +13,8 @@ layout(location = 1) out vec3 fragPosWorld;
 layout(location = 2) out vec3 fragNormalWorld;
 
 layout(set = 0, binding = 0) uniform GlobalUBO {
-	mat4 projectionViewMatrix;
+	mat4 projectionMatrix;
+	mat4 ViewMatrix;
 	vec3 directionToLight;
 	vec4 ambientColor;
 	vec3 pointLightPosition;
@@ -28,7 +29,7 @@ layout(push_constant) uniform KitPushConstantsData {
 void main() {
 	vec4 worldPosition = kitPushConstantsData.modelMatrix * vec4(position, 1.0);
 
-	gl_Position = ubo.projectionViewMatrix * worldPosition;
+	gl_Position = ubo.projectionMatrix * ubo.ViewMatrix * worldPosition;
 
 	// No need for 4x4 since normal is just a direction
 	// mat3 normalMatrix = transpose(inverse(mat3(kitPushConstantsData.model)));

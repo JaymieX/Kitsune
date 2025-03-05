@@ -14,6 +14,7 @@
 
 #include "Graphics/KitGlobalGraphicsDefines.h"
 #include "KitInputController.h"
+#include "Graphics/RenderSystems/KitGizmoBillboardRenderSystem.h"
 #include "System/Subsystems/Caches/KitModelResourceCache.h"
 #include "System/Subsystems/KitResourceSystem.h"
 
@@ -77,6 +78,12 @@ namespace Kitsune
             engine_device_.get(),
             renderer_->GetRenderPass(),
             global_set_layout->GetDescriptorSetLayout());
+
+        KitGizmoBillboardRenderSystem billboard_render_system(
+            engine_device_.get(),
+            renderer_->GetRenderPass(),
+            global_set_layout->GetDescriptorSetLayout());
+
         KitCamera camera;
         // camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
         camera.SetViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -110,13 +117,15 @@ namespace Kitsune
 
                 // Update
                 KitGlobalUBO global_ubo;
-                global_ubo.projection_view = camera.GetProjectionMatrix() * camera.GetViewMatrix();
+                global_ubo.projection = camera.GetProjectionMatrix();
+                global_ubo.view       = camera.GetViewMatrix();
                 ubo_buffers[frame_index]->WriteToBuffer(&global_ubo);
                 ubo_buffers[frame_index]->Flush(); // Manual flush because we didn't use host coherent
 
                 // Render
                 renderer_->BeginSwapChainRenderPass(command_buffer);
                 basic_render_system.RenderGameObjects(frame_info, game_objects_);
+                billboard_render_system.RenderGameObjects(frame_info, game_objects_);
                 renderer_->EndSwapChainRenderPass(command_buffer);
 
                 renderer_->EndFrame();
