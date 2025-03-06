@@ -17,18 +17,9 @@ namespace Kitsune
     };
 
     KitGizmoBillboardRenderSystem::KitGizmoBillboardRenderSystem(
-        KitEngineDevice*      device,
-        VkRenderPass          render_pass,
-        VkDescriptorSetLayout descriptor_set_layout):
-        engine_device_(device)
+        KitEngineDevice*      device):
+        KitRenderSystemBase(device)
     {
-        CreatePipelineLayout(descriptor_set_layout);
-        CreatePipeline(render_pass);
-    }
-
-    KitGizmoBillboardRenderSystem::~KitGizmoBillboardRenderSystem()
-    {
-        vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
     }
 
     void KitGizmoBillboardRenderSystem::Update(const KitFrameInfo& frame_info, KitGlobalUBO& ubo)
@@ -57,7 +48,7 @@ namespace Kitsune
         ubo.num_lights = light_index;
     }
 
-    void KitGizmoBillboardRenderSystem::RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const
+    void KitGizmoBillboardRenderSystem::Render(const KitFrameInfo& frame_info) const
     {
         pipeline_->Bind(frame_info.command_buffer);
 

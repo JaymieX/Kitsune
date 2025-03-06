@@ -6,6 +6,7 @@
 #include "Graphics/KitDescriptor.h"
 
 #include "Graphics/KitRenderer.h"
+#include "Graphics/RenderSystems/KitRenderSystemManager.h"
 #include "System/KitSystemManager.h"
 
 namespace Kitsune
@@ -21,6 +22,7 @@ namespace Kitsune
         std::unique_ptr<KitRenderer> renderer_;
 
         KitSystemManager system_manager_;
+        std::unique_ptr<KitRenderSystemManager> render_system_manager_ = nullptr;
 
         std::unique_ptr<KitDescriptorPool> descriptor_pool_;
         std::vector<KitGameObject> game_objects_;

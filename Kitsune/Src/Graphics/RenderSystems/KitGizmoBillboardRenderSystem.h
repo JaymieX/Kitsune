@@ -4,26 +4,21 @@
 #include "Graphics/KitEngineDevice.h"
 #include "Graphics/KitPipeline.h"
 #include "KitFrameInfo.h"
+#include "KitRenderSystemBase.h"
 #include "Graphics/KitGlobalGraphicsDefines.h"
 
 namespace Kitsune
 {
-    class KitGizmoBillboardRenderSystem
+    class KitGizmoBillboardRenderSystem : public KitRenderSystemBase
     {
-        KitEngineDevice* engine_device_;
-
-        std::unique_ptr<KitPipeline> pipeline_;
-        VkPipelineLayout             pipeline_layout_;
-
     public:
-        KitGizmoBillboardRenderSystem(KitEngineDevice* device, VkRenderPass render_pass, VkDescriptorSetLayout descriptor_set_layout);
-        ~KitGizmoBillboardRenderSystem();
+        explicit KitGizmoBillboardRenderSystem(KitEngineDevice* device);
 
-        void Update(const KitFrameInfo &frame_info, KitGlobalUBO &ubo);
-        void RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const;
+        void Update(const KitFrameInfo &frame_info, KitGlobalUBO &ubo) override;
+        void Render(const KitFrameInfo& frame_info) const override;
 
-    private:
-        void CreatePipelineLayout(VkDescriptorSetLayout descriptor_set_layout);
-        void CreatePipeline(VkRenderPass render_pass);
+    protected:
+        void CreatePipelineLayout(VkDescriptorSetLayout descriptor_set_layout) override;
+        void CreatePipeline(VkRenderPass render_pass) override;
     };
 }

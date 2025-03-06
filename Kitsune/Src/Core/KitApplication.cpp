@@ -73,16 +73,11 @@ namespace Kitsune
                 .WriteBuffer(0, &buffer_info)
                 .Build(global_descriptor_sets[i]);
         }
+        render_system_manager_ = std::make_unique<KitRenderSystemManager>(engine_device_.get());
+        render_system_manager_->RegisterRenderSystem<KitBasicRenderSystem>();
+        render_system_manager_->RegisterRenderSystem<KitGizmoBillboardRenderSystem>();
 
-        KitBasicRenderSystem basic_render_system(
-            engine_device_.get(),
-            renderer_->GetRenderPass(),
-            global_set_layout->GetDescriptorSetLayout());
-
-        KitGizmoBillboardRenderSystem billboard_render_system(
-            engine_device_.get(),
-            renderer_->GetRenderPass(),
-            global_set_layout->GetDescriptorSetLayout());
+        render_system_manager_->Init(renderer_->GetRenderPass(), global_set_layout->GetDescriptorSetLayout());
 
         KitCamera camera;
         // camera.SetViewDirection(glm::vec3(0.f), glm::vec3(.5f, .5f, 1.f));
@@ -121,14 +116,13 @@ namespace Kitsune
                 global_ubo.projection   = camera.GetProjectionMatrix();
                 global_ubo.view         = camera.GetViewMatrix();
                 global_ubo.inverse_view = camera.GetInverseViewMatrix();
-                billboard_render_system.Update(frame_info, global_ubo);
+                render_system_manager_->Update(frame_info, global_ubo);
                 ubo_buffers[frame_index]->WriteToBuffer(&global_ubo);
                 ubo_buffers[frame_index]->Flush(); // Manual flush because we didn't use host coherent
 
                 // Render
                 renderer_->BeginSwapChainRenderPass(command_buffer);
-                basic_render_system.RenderGameObjects(frame_info, game_objects_);
-                billboard_render_system.RenderGameObjects(frame_info, game_objects_);
+                render_system_manager_->Render(frame_info);
                 renderer_->EndSwapChainRenderPass(command_buffer);
 
                 renderer_->EndFrame();
@@ -166,12 +160,12 @@ namespace Kitsune
         game_objects_.push_back(quad_go);
 
         std::vector<glm::vec3> lightColors{
-          {1.f, .1f, .1f},
-          {.1f, .1f, 1.f},
-          {.1f, 1.f, .1f},
-          {1.f, 1.f, .1f},
-          {.1f, 1.f, 1.f},
-          {1.f, 1.f, 1.f}  //
+            {1.f, .1f, .1f},
+            {.1f, .1f, 1.f},
+            {.1f, 1.f, .1f},
+            {1.f, 1.f, .1f},
+            {.1f, 1.f, 1.f},
+            {1.f, 1.f, 1.f} //
         };
 
         for (int i = 0; i < lightColors.size(); i++)

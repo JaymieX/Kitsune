@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Graphics/KitCamera.h"
+#include "Core/Scene/KitGameObject.h"
 
 namespace Kitsune
 {

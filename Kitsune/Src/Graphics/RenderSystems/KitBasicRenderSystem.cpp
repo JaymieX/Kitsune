@@ -17,21 +17,12 @@ namespace Kitsune
     };
 
     KitBasicRenderSystem::KitBasicRenderSystem(
-        KitEngineDevice*      device,
-        VkRenderPass          render_pass,
-        VkDescriptorSetLayout descriptor_set_layout):
-        engine_device_(device)
+        KitEngineDevice* device):
+        KitRenderSystemBase(device)
     {
-        CreatePipelineLayout(descriptor_set_layout);
-        CreatePipeline(render_pass);
     }
 
-    KitBasicRenderSystem::~KitBasicRenderSystem()
-    {
-        vkDestroyPipelineLayout(engine_device_->GetDevice(), pipeline_layout_, nullptr);
-    }
-
-    void KitBasicRenderSystem::RenderGameObjects(const KitFrameInfo& frame_info, std::vector<KitGameObject>& game_objects) const
+    void KitBasicRenderSystem::Render(const KitFrameInfo& frame_info) const
     {
         pipeline_->Bind(frame_info.command_buffer);
 
@@ -45,7 +36,7 @@ namespace Kitsune
             0,
             nullptr);
 
-        for (auto& game_obj : game_objects)
+        for (auto& game_obj : frame_info.game_objects)
         {
             if (game_obj.model == nullptr)
             {
